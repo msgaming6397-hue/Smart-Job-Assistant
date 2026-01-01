@@ -20,6 +20,127 @@ document.addEventListener('DOMContentLoaded', () => {
     const clOutput = document.getElementById('cl-output');
     const clNameInput = document.getElementById('cl-name');
 
+    // Menu Toggle
+    const menuIcon = document.getElementById('menu-icon');
+    const menuBox = document.getElementById('menu-box'); // Renamed from credits-box
+    const navEnhance = document.getElementById('nav-enhance');
+    const navBuilder = document.getElementById('nav-builder');
+
+    // Enhance Views
+    const enhanceView = document.getElementById('enhance-view');
+    const enhanceBackBtn = document.getElementById('enhance-back-btn');
+    const enhanceForm = document.getElementById('enhance-form');
+    const enhanceFileInput = document.getElementById('enhance-file-input');
+    const enhanceDropZone = document.getElementById('enhance-drop-zone');
+    const enhanceBtn = document.getElementById('enhance-btn');
+    const enhanceLoading = document.getElementById('enhance-loading');
+    const enhanceResults = document.getElementById('enhance-results');
+    const enhanceFileName = document.getElementById('enhance-file-name');
+
+
+    menuIcon.addEventListener('click', (e) => {
+        e.stopPropagation();
+        menuBox.classList.toggle('hidden');
+    });
+
+    // Navigate to Enhance View (Separate Page)
+    navEnhance.addEventListener('click', () => {
+        window.location.href = '/enhance';
+    });
+
+    // Navigate to Resume Builder (Separate Page)
+    if (navBuilder) {
+        navBuilder.addEventListener('click', () => {
+            window.location.href = '/builder';
+        });
+    }
+
+    enhanceBackBtn.addEventListener('click', () => {
+        switchView('upload');
+        enhanceForm.reset();
+        enhanceResults.classList.add('hidden');
+        enhanceResults.innerHTML = '';
+        enhanceFileName.classList.add('hidden');
+    });
+
+    // Close menu when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!menuBox.contains(e.target) && !menuIcon.contains(e.target)) {
+            menuBox.classList.add('hidden');
+        }
+    });
+
+    // Enhance Drag & Drop
+    enhanceDropZone.addEventListener('dragover', (e) => { e.preventDefault(); enhanceDropZone.classList.add('dragover'); });
+    enhanceDropZone.addEventListener('dragleave', () => { enhanceDropZone.classList.remove('dragover'); });
+    enhanceDropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        enhanceDropZone.classList.remove('dragover');
+        if (e.dataTransfer.files.length) {
+            enhanceFileInput.files = e.dataTransfer.files;
+            handleEnhanceFileSelect();
+        }
+    });
+
+    enhanceFileInput.addEventListener('change', handleEnhanceFileSelect);
+
+    function handleEnhanceFileSelect() {
+        if (enhanceFileInput.files.length) {
+            enhanceFileName.textContent = `Selected: ${enhanceFileInput.files[0].name}`;
+            enhanceFileName.classList.remove('hidden');
+            enhanceBtn.disabled = false;
+        }
+    }
+
+    // Enhance Form Submit
+    enhanceForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData();
+        formData.append('resume', enhanceFileInput.files[0]);
+
+        enhanceLoading.classList.remove('hidden');
+        enhanceResults.classList.add('hidden');
+        enhanceBtn.disabled = true;
+
+        try {
+            const response = await fetch('/enhance-cv', { method: 'POST', body: formData });
+            const data = await response.json();
+
+            if (data.suggestions) {
+                enhanceResults.innerHTML = data.suggestions;
+                enhanceResults.classList.remove('hidden');
+            } else {
+                alert(data.error || 'Error enhancing CV');
+            }
+        } catch (err) {
+            alert('An error occurred.');
+        } finally {
+            enhanceLoading.classList.add('hidden');
+            enhanceBtn.disabled = false;
+        }
+    });
+
+    function switchView(viewName) {
+        // Hide all views
+        uploadView.classList.remove('active');
+        uploadView.classList.add('hidden');
+        dashboardView.classList.remove('active');
+        dashboardView.classList.add('hidden');
+        enhanceView.classList.remove('active');
+        enhanceView.classList.add('hidden');
+
+        if (viewName === 'dashboard') {
+            dashboardView.classList.remove('hidden');
+            setTimeout(() => dashboardView.classList.add('active'), 10);
+        } else if (viewName === 'enhance') {
+            enhanceView.classList.remove('hidden');
+            setTimeout(() => enhanceView.classList.add('active'), 10);
+        } else {
+            uploadView.classList.remove('hidden');
+            setTimeout(() => uploadView.classList.add('active'), 10);
+        }
+    }
+
     // State
     let currentSkills = [];
 
@@ -107,14 +228,40 @@ document.addEventListener('DOMContentLoaded', () => {
             atsTipsList.appendChild(li);
         });
 
-        // Render Skills
-        skillsList.innerHTML = '';
-        currentSkills = data.skills || [];
-        currentSkills.forEach(skill => {
+        // Render Technical Skills
+        const techSkillsList = document.getElementById('tech-skills-list');
+        techSkillsList.innerHTML = '';
+        currentSkills = [...(data.technical_skills || []), ...(data.soft_skills || [])]; // Combine for cover letter
+
+        const techSkills = data.technical_skills || [];
+        if (techSkills.length === 0 && data.skills) {
+            // Fallback if old format
+            currentSkills = data.skills;
+            currentSkills.forEach(skill => {
+                const span = document.createElement('span');
+                span.classList.add('tag');
+                span.textContent = skill;
+                techSkillsList.appendChild(span);
+            });
+        } else {
+            techSkills.forEach(skill => {
+                const span = document.createElement('span');
+                span.classList.add('tag');
+                span.textContent = skill;
+                techSkillsList.appendChild(span);
+            });
+        }
+
+        // Render Soft Skills
+        const softSkillsList = document.getElementById('soft-skills-list');
+        softSkillsList.innerHTML = '';
+        const softSkills = data.soft_skills || [];
+        softSkills.forEach(skill => {
             const span = document.createElement('span');
             span.classList.add('tag');
+            span.style.borderColor = 'var(--secondary-color)';
             span.textContent = skill;
-            skillsList.appendChild(span);
+            softSkillsList.appendChild(span);
         });
 
         // Render Missing Skills (Gap Analysis)
@@ -143,13 +290,19 @@ document.addEventListener('DOMContentLoaded', () => {
             const card = document.createElement('div');
             card.className = 'role-card';
 
-            // Build LinkedIn Search URL
+            // Build Search URLs
             const linkedInUrl = `https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(roleObj.title)}`;
+            const naukriUrl = `https://www.naukri.com/jobs-in-india?k=${encodeURIComponent(roleObj.title)}`;
+            const indeedUrl = `https://in.indeed.com/jobs?q=${encodeURIComponent(roleObj.title)}`;
 
             card.innerHTML = `
                 <span class="role-title">${roleObj.title}</span>
                 <p>${roleObj.description}</p>
-                <a href="${linkedInUrl}" target="_blank" class="btn-linkedin">Find on LinkedIn ↗</a>
+                <div class="job-buttons">
+                    <a href="${linkedInUrl}" target="_blank" class="btn-job btn-linkedin">LinkedIn ↗</a>
+                    <a href="${naukriUrl}" target="_blank" class="btn-job btn-naukri">Naukri ↗</a>
+                    <a href="${indeedUrl}" target="_blank" class="btn-job btn-indeed">Indeed ↗</a>
+                </div>
             `;
             rolesList.appendChild(card);
 

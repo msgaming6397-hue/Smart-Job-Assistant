@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Builder - Coming Soon</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        .coming-soon-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 60vh;
+            text-align: center;
+        }
+
+        .coming-soon-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .coming-soon-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 10px;
+        }
+
+        .coming-soon-text {
+            font-size: 1.1rem;
+            color: #b0b0b0;
+            max-width: 400px;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-15px);
+            }
+
+            100% {
+                transform: translateY(0px);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="bg-shape one"></div>
+    <div class="bg-shape two"></div>
+
+    <div class="container">
+        <header>
+            <div class="logo">SmartJob<span>AI</span></div>
+            <p>Career Tools Suite</p>
+            <div class="menu-icon" onclick="window.location.href='/'">🏠</div>
+        </header>
+
+        <main id="app">
+            <div class="glass-card full-width">
+                <div class="coming-soon-container">
+                    <div class="coming-soon-icon">🚧</div>
+                    <h1 class="coming-soon-title">Coming Soon</h1>
+                    <p class="coming-soon-text">We are working hard to build the ultimate AI Resume Builder for you.
+                        Stay tuned!</p>
+                    <br>
+                    <button class="btn-primary" onclick="window.location.href='/'">Return Home</button>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+
+</html>

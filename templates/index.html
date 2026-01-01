@@ -16,7 +16,24 @@
     <div class="container">
         <header>
             <div class="logo">SmartJob<span>AI</span></div>
-            <p>Unlock your career potential with AI created by the students of Bca.</p>
+            <p>Unlock your career potential with AI.</p>
+
+            <!-- Menu Toggle -->
+            <div class="menu-icon" id="menu-icon">⋮</div>
+
+            <!-- Menu Popup -->
+            <div id="menu-box" class="menu-box hidden">
+                <div class="menu-item" id="nav-builder">
+                    <span>🛠️</span> Resume Builder
+                </div>
+                <div class="menu-item" id="nav-enhance">
+                    <span>🚀</span> Enhance CV
+                </div>
+                <div class="menu-divider"></div>
+                <h4>Developed By</h4>
+                <div class="dev-item">Mohammed Saaqib</div>
+                <div class="dev-item">Ranjith Kumar</div>
+            </div>
         </header>
 
         <main id="app">
@@ -42,6 +59,39 @@
                     <div id="loading" class="loading hidden">
                         <div class="spinner"></div>
                         <p>AI is reading your resume...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Enhance View -->
+            <div id="enhance-view" class="view hidden">
+                <div class="glass-card">
+                    <div class="dashboard-header">
+                        <h2>Enhance Your CV</h2>
+                        <button id="enhance-back-btn" class="btn-text">← Back to Analyze</button>
+                    </div>
+                    <p class="subtitle">Get expert AI suggestions to improve your resume's impact.</p>
+
+                    <form id="enhance-form">
+                        <div class="drop-zone" id="enhance-drop-zone">
+                            <p>Drag & Drop your resume here</p>
+                            <p class="small">or</p>
+                            <button type="button" class="btn-outline"
+                                onclick="document.getElementById('enhance-file-input').click()">Browse Files</button>
+                            <input type="file" id="enhance-file-input" name="resume" accept=".pdf,.docx" hidden>
+                        </div>
+                        <div id="enhance-file-name" class="hidden"></div>
+
+                        <button type="submit" class="btn-primary" id="enhance-btn" disabled>Get Suggestions</button>
+                    </form>
+
+                    <div id="enhance-loading" class="loading hidden">
+                        <div class="spinner"></div>
+                        <p>AI is reviewing your resume...</p>
+                    </div>
+
+                    <div id="enhance-results" class="enhance-output hidden">
+                        <!-- Suggestions go here -->
                     </div>
                 </div>
             </div>
