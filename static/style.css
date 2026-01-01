@@ -1,0 +1,419 @@
+:root {
+    --bg-color: #0f0f13;
+    --text-color: #ffffff;
+    --accent-color: #7b2cbf;
+    --accent-glow: #9d4edd;
+    --secondary-color: #48bb78;
+    --glass-bg: rgba(255, 255, 255, 0.05);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --font-main: 'Inter', sans-serif;
+}
+
+body {
+    margin: 0;
+    font-family: var(--font-main);
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    overflow-x: hidden;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Background Blobs */
+.bg-shape {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(100px);
+    z-index: -1;
+    animation: float 10s infinite alternate;
+}
+
+.one {
+    width: 400px;
+    height: 400px;
+    background: var(--accent-color);
+    top: -100px;
+    left: -100px;
+}
+
+.two {
+    width: 300px;
+    height: 300px;
+    background: #240046;
+    bottom: -50px;
+    right: -50px;
+    animation-delay: 2s;
+}
+
+@keyframes float {
+    0% {
+        transform: translate(0, 0);
+    }
+
+    100% {
+        transform: translate(30px, 50px);
+    }
+}
+
+.container {
+    width: 90%;
+    max-width: 1000px;
+    margin: auto;
+    padding: 20px;
+    position: relative;
+    z-index: 1;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.logo {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 5px;
+}
+
+.logo span {
+    color: var(--accent-glow);
+}
+
+.subtitle {
+    color: #a0a0a0;
+}
+
+/* Glass Card */
+.glass-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    padding: 40px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+    transition: transform 0.3s ease;
+}
+
+.glass-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Form & Input */
+.drop-zone {
+    border: 2px dashed rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    padding: 40px;
+    text-align: center;
+    transition: border-color 0.3s;
+    margin: 20px 0;
+    cursor: pointer;
+}
+
+.drop-zone.dragover {
+    border-color: var(--accent-glow);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--accent-color), var(--accent-glow));
+    border: none;
+    color: white;
+    padding: 12px 30px;
+    border-radius: 50px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: transform 0.2s, box-shadow 0.2s;
+    margin-top: 10px;
+}
+
+.btn-primary:hover:not(:disabled) {
+    transform: scale(1.05);
+    box-shadow: 0 0 15px var(--accent-color);
+}
+
+.btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-outline {
+    background: transparent;
+    border: 1px solid #ffffff;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    margin-bottom: 10px;
+}
+
+.btn-outline:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.btn-text {
+    background: none;
+    border: none;
+    color: #aaa;
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.btn-secondary {
+    background: #333;
+    color: white;
+    padding: 10px 20px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+/* Dashboard Grid */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.full-width {
+    grid-column: 1 / -1;
+}
+
+@media (max-width: 768px) {
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Tags & Roles */
+.tags-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.tag {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 5px 12px;
+    border-radius: 15px;
+    font-size: 0.9rem;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.roles-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.role-card {
+    background: rgba(0, 0, 0, 0.2);
+    padding: 15px;
+    border-radius: 10px;
+    border-left: 3px solid var(--accent-glow);
+}
+
+.role-title {
+    font-weight: 700;
+    color: var(--accent-glow);
+    margin-bottom: 5px;
+    display: block;
+}
+
+/* Cover Letter Section */
+.input-field {
+    width: 100%;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    color: white;
+    margin-bottom: 10px;
+    box-sizing: border-box;
+}
+
+.cl-output {
+    margin-top: 20px;
+    background: rgba(0, 0, 0, 0.4);
+    padding: 20px;
+    border-radius: 10px;
+    white-space: pre-wrap;
+    font-family: 'Courier New', monospace;
+    line-height: 1.5;
+    font-size: 0.95rem;
+}
+
+/* Loading Spinner */
+.loading {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: #ccc;
+}
+
+.spinner {
+    border: 4px solid rgba(255, 255, 255, 0.1);
+    border-left-color: var(--accent-glow);
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    animation: spin 1s linear infinite;
+    margin-bottom: 10px;
+}
+
+.spinner.small {
+    width: 20px;
+    height: 20px;
+    border-width: 2px;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.hidden {
+    display: none !important;
+}
+
+.view {
+    transition: opacity 0.5s ease;
+}
+
+#file-name {
+    margin-top: 10px;
+    font-weight: 600;
+}
+
+/* ATS Score Styles */
+.ats-container {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.circle-chart {
+    width: 100px;
+    height: 100px;
+}
+
+.circular-chart {
+    display: block;
+    margin: 10px auto;
+    max-width: 80%;
+    max-height: 250px;
+}
+
+.circle-bg {
+    fill: none;
+    stroke: rgba(255, 255, 255, 0.1);
+    stroke-width: 3.8;
+}
+
+.circle {
+    fill: none;
+    stroke-width: 2.8;
+    stroke-linecap: round;
+    stroke: var(--secondary-color);
+    animation: progress 1s ease-out forwards;
+    transition: stroke-dasharray 1s ease;
+}
+
+.percentage {
+    fill: #fff;
+    font-family: var(--font-main);
+    font-weight: bold;
+    font-size: 0.5em;
+    text-anchor: middle;
+}
+
+.ats-tips {
+    flex: 1;
+}
+
+.ats-tips h4 {
+    margin: 0 0 10px 0;
+    color: var(--accent-glow);
+}
+
+.ats-tips ul {
+    margin: 0;
+    padding-left: 20px;
+    font-size: 0.9rem;
+    color: #ddd;
+}
+
+.ats-tips li {
+    margin-bottom: 5px;
+}
+
+@keyframes progress {
+    0% {
+        stroke-dasharray: 0 100;
+    }
+}
+
+/* Skill Gap Styles */
+.gap-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.gap-item {
+    background: rgba(255, 50, 50, 0.1);
+    border-left: 3px solid #ff4d4d;
+    padding: 10px 15px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+}
+
+.gap-skill-name {
+    font-weight: 700;
+    color: #ff4d4d;
+    display: block;
+    margin-bottom: 2px;
+}
+
+.gap-rec {
+    font-size: 0.85rem;
+    color: #ccc;
+    font-style: italic;
+}
+
+.section-subtitle {
+    color: #aaa;
+    font-size: 0.9rem;
+    margin-top: -10px;
+    margin-bottom: 15px;
+}
+
+/* LinkedIn Button */
+.btn-linkedin {
+    display: inline-block;
+    background: #0077b5;
+    /* LinkedIn Blue */
+    color: white;
+    text-decoration: none;
+    padding: 8px 15px;
+    border-radius: 5px;
+    font-size: 0.85rem;
+    margin-top: 10px;
+    font-weight: 600;
+    transition: background 0.2s;
+}
+
+.btn-linkedin:hover {
+    background: #005e93;
+}

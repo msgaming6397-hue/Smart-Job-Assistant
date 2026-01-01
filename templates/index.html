@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Job Assistant</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="bg-shape one"></div>
+    <div class="bg-shape two"></div>
+
+    <div class="container">
+        <header>
+            <div class="logo">SmartJob<span>AI</span></div>
+            <p>Unlock your career potential with AI created by the students of Bca.</p>
+        </header>
+
+        <main id="app">
+            <!-- Upload View -->
+            <div id="upload-view" class="view active">
+                <div class="glass-card">
+                    <h2>Analyze Your Resume</h2>
+                    <p class="subtitle">Upload your PDF or DOCX to get instant feedback.</p>
+
+                    <form id="upload-form">
+                        <div class="drop-zone" id="drop-zone">
+                            <p>Drag & Drop your resume here</p>
+                            <p class="small">or</p>
+                            <button type="button" class="btn-outline"
+                                onclick="document.getElementById('file-input').click()">Browse Files</button>
+                            <input type="file" id="file-input" name="resume" accept=".pdf,.docx" hidden>
+                        </div>
+                        <div id="file-name" class="hidden"></div>
+
+                        <button type="submit" class="btn-primary" id="analyze-btn" disabled>Analyze Now</button>
+                    </form>
+
+                    <div id="loading" class="loading hidden">
+                        <div class="spinner"></div>
+                        <p>AI is reading your resume...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard View -->
+            <div id="dashboard-view" class="view hidden">
+                {% include 'dashboard.html' %}
+            </div>
+        </main>
+    </div>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+
+</html>
