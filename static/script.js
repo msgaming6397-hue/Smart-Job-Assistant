@@ -6,6 +6,27 @@ document.addEventListener('DOMContentLoaded', () => {
     const fileNameDisplay = document.getElementById('file-name');
     const loadingDiv = document.getElementById('loading');
 
+    // Theme Toggle
+    const toggleSwitch = document.querySelector('.theme-switch input[type="checkbox"]');
+    const currentTheme = localStorage.getItem('theme');
+
+    if (currentTheme) {
+        document.body.classList.add(currentTheme);
+        if (currentTheme === 'light-mode') {
+            toggleSwitch.checked = true;
+        }
+    }
+
+    toggleSwitch.addEventListener('change', function (e) {
+        if (e.target.checked) {
+            document.body.classList.add('light-mode');
+            localStorage.setItem('theme', 'light-mode');
+        } else {
+            document.body.classList.remove('light-mode');
+            localStorage.setItem('theme', 'dark-mode');
+        }
+    });
+
     // Views
     const uploadView = document.getElementById('upload-view');
     const dashboardView = document.getElementById('dashboard-view');
@@ -52,6 +73,20 @@ document.addEventListener('DOMContentLoaded', () => {
     if (navBuilder) {
         navBuilder.addEventListener('click', () => {
             window.location.href = '/builder';
+        });
+    }
+
+    const navInterview = document.getElementById('nav-interview');
+    if (navInterview) {
+        navInterview.addEventListener('click', () => {
+            window.location.href = '/interview';
+        });
+    }
+
+    const navRoadmap = document.getElementById('nav-roadmap');
+    if (navRoadmap) {
+        navRoadmap.addEventListener('click', () => {
+            window.location.href = '/roadmap';
         });
     }
 
@@ -379,4 +414,142 @@ document.addEventListener('DOMContentLoaded', () => {
             generateClBtn.disabled = false;
         }
     });
+
+    // Export Dashboard PDF
+    const exportReportBtn = document.getElementById('export-report-btn');
+    if (exportReportBtn) {
+        exportReportBtn.addEventListener('click', () => {
+            const dashboardContent = document.getElementById('dashboard-view');
+
+            // Create a dedicated container for the PDF
+            const pdfContainer = document.createElement('div');
+
+            // Gather sections to include
+            const cloneContent = (selector) => {
+                const el = dashboardContent.querySelector(selector);
+                if (el) return el.cloneNode(true);
+                return null;
+            };
+
+            const skillsSection = cloneContent('.skills-table-container');
+            const gapSection = cloneContent('.gap-wrapper');
+            const rolesSection = cloneContent('.roles-wrapper');
+
+            // --- Construct PDF Layout ---
+
+            // Title
+            const title = document.createElement('h1');
+            title.textContent = "AI Career Analysis Report";
+            title.style.textAlign = 'center';
+            title.style.fontFamily = 'Helvetica, sans-serif';
+            title.style.marginBottom = '30px';
+            title.style.color = '#111';
+            pdfContainer.appendChild(title);
+
+            // ATS Score (Text Representation)
+            const scoreText = document.getElementById('ats-text').textContent;
+            const atsDiv = document.createElement('div');
+            atsDiv.style.marginBottom = '20px';
+            atsDiv.style.padding = '20px';
+            atsDiv.style.border = '1px solid #ddd';
+            atsDiv.style.borderRadius = '8px';
+            atsDiv.innerHTML = `<h2 style="margin:0; color:#333;">ATS Score: <span style="color:#4f46e5;">${scoreText}</span></h2>`;
+            pdfContainer.appendChild(atsDiv);
+
+            // Helper to add section
+            const addSection = (titleText, contentNode) => {
+                if (contentNode) {
+                    const section = document.createElement('div');
+                    section.style.marginBottom = '25px';
+                    const h3 = document.createElement('h3');
+                    h3.textContent = titleText;
+                    h3.style.color = '#333';
+                    h3.style.borderBottom = '1px solid #eee';
+                    h3.style.paddingBottom = '5px';
+                    section.appendChild(h3);
+
+                    // Style specific children for print
+                    contentNode.style.display = 'block';
+                    contentNode.style.color = '#000';
+                    contentNode.style.width = '100% !important';
+                    contentNode.style.flexWrap = 'wrap !important';
+
+                    // Specific fix for skills pills
+                    const pills = contentNode.querySelectorAll('.tag');
+                    pills.forEach(p => {
+                        p.style.display = 'inline-block';
+                        p.style.border = '1px solid #999';
+                        p.style.padding = '5px 10px';
+                        p.style.borderRadius = '15px';
+                        p.style.margin = '2px';
+                        p.style.color = '#000';
+                        p.style.background = '#f0f0f0';
+                    });
+                    // Specific fix for cards (roles/gaps)
+                    const cards = contentNode.querySelectorAll('.role-card, .menu-item');
+                    cards.forEach(c => {
+                        c.style.border = '1px solid #ddd';
+                        c.style.padding = '10px';
+                        c.style.marginBottom = '10px';
+                        c.style.background = '#fff';
+                        c.style.color = '#000';
+                    });
+
+                    section.appendChild(contentNode);
+                    pdfContainer.appendChild(section);
+                }
+            };
+
+            // Add Improvement Tips
+            const tipsList = document.getElementById('ats-tips-list');
+            if (tipsList) {
+                const tipsClone = tipsList.cloneNode(true);
+                tipsClone.style.color = '#333';
+                const listItems = tipsClone.querySelectorAll('li');
+                listItems.forEach(li => {
+                    li.style.marginBottom = '5px';
+                    li.style.color = '#333';
+                });
+                addSection("Improvement Tips", tipsClone);
+            }
+
+            addSection("Skills Profile", skillsSection);
+
+            // Missing Skills
+            const missingDiv = document.getElementById('missing-skills-list');
+            if (missingDiv) {
+                const missingClone = missingDiv.cloneNode(true);
+                // Fix pills inside missing clone
+                const pills = missingClone.querySelectorAll('.tag');
+                pills.forEach(p => {
+                    p.style.display = 'inline-block';
+                    p.style.border = '1px solid #dbafe5';
+                    p.style.padding = '5px 10px';
+                    p.style.margin = '2px';
+                    p.style.background = '#fdf2ff';
+                    p.style.color = '#7000ff';
+                });
+                addSection("Recommended Skills to Learn", missingClone);
+            }
+
+            addSection("Recommended Roles", rolesSection);
+
+            // Container Styles
+            pdfContainer.style.width = '100%';
+            pdfContainer.style.padding = '40px';
+            pdfContainer.style.background = '#fff';
+            pdfContainer.style.fontFamily = 'Helvetica, sans-serif';
+            pdfContainer.style.boxSizing = 'border-box';
+
+            const opt = {
+                margin: 0.4,
+                filename: 'Career_Analysis_Report.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, scrollY: 0, useCORS: true },
+                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+
+            html2pdf().set(opt).from(pdfContainer).save();
+        });
+    }
 });

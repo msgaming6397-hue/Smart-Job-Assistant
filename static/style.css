@@ -1,12 +1,117 @@
+/* Google Font */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap');
+
 :root {
-    --bg-color: #0f0f13;
+    --bg-color: #050507;
     --text-color: #ffffff;
-    --accent-color: #7b2cbf;
-    --accent-glow: #9d4edd;
-    --secondary-color: #48bb78;
-    --glass-bg: rgba(255, 255, 255, 0.05);
-    --glass-border: rgba(255, 255, 255, 0.1);
-    --font-main: 'Inter', sans-serif;
+    --glass-bg: rgba(255, 255, 255, 0.03);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+    --accent-color: #6366f1;
+    /* Indigo */
+    --accent-glow: #818cf8;
+    --secondary-color: #38bdf8;
+    /* Sky */
+    --success-color: #34d399;
+    --font-heading: 'Outfit', sans-serif;
+    --font-body: 'Inter', sans-serif;
+}
+
+/* Light Mode Override */
+body.light-mode {
+    --bg-color: #f3f4f6;
+    --text-color: #1f2937;
+    /* Dark Grey Text */
+    --glass-bg: rgba(255, 255, 255, 0.9);
+    --glass-border: rgba(0, 0, 0, 0.1);
+    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.05);
+    --accent-color: #4f46e5;
+    --accent-glow: #6366f1;
+    --secondary-color: #0284c7;
+}
+
+body.light-mode h1,
+body.light-mode h2,
+body.light-mode h3,
+body.light-mode h4,
+body.light-mode p,
+body.light-mode li,
+body.light-mode span,
+body.light-mode strong {
+    color: var(--text-color);
+}
+
+body.light-mode .subtitle {
+    color: #4b5563;
+    /* Lighter grey for subtitles */
+}
+
+/* Light Mode Buttons & Inputs */
+body.light-mode .btn-outline {
+    color: #1f2937;
+    border-color: #d1d5db;
+    background: transparent;
+}
+
+body.light-mode .btn-outline:hover {
+    background: rgba(0, 0, 0, 0.05);
+    border-color: var(--accent-color);
+}
+
+body.light-mode input,
+body.light-mode textarea {
+    color: #1f2937 !important;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+}
+
+body.light-mode input::placeholder {
+    color: #9ca3af;
+}
+
+/* Light Mode specific element fixes */
+body.light-mode .ats-score-text {
+    color: #1f2937;
+    /* Make score visible */
+}
+
+body.light-mode .drop-zone {
+    background: rgba(255, 255, 255, 0.5);
+    border-color: #d1d5db;
+}
+
+body.light-mode .drop-zone .small {
+    color: #6b7280;
+}
+
+/* Light Mode Results Area */
+body.light-mode .enhance-output,
+body.light-mode .q-card,
+body.light-mode .step-card,
+body.light-mode .role-card {
+    color: #1f2937;
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+body.light-mode .enhance-output li,
+body.light-mode .q-text,
+body.light-mode .step-desc {
+    color: #374151;
+}
+
+body.light-mode .menu-box {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+}
+
+body.light-mode .menu-item {
+    color: #374151;
+}
+
+body.light-mode .menu-item:hover {
+    color: #ffffff;
 }
 
 body {
@@ -550,6 +655,86 @@ header {
 .vertical-divider {
     width: 1px;
     background: rgba(255, 255, 255, 0.1);
+}
+
+/* Toggle Switch */
+.theme-switch-wrapper {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    display: flex;
+    align-items: center;
+    z-index: 100;
+}
+
+.theme-switch {
+    display: inline-block;
+    height: 24px;
+    position: relative;
+    width: 60px;
+}
+
+.theme-switch input {
+    display: none;
+}
+
+.slider {
+    background-color: rgba(255, 255, 255, 0.2);
+    bottom: 0;
+    cursor: pointer;
+    left: 0;
+    position: absolute;
+    right: 0;
+    top: 0;
+    transition: .4s;
+    border-radius: 34px;
+}
+
+.slider:before {
+    background-color: #fff;
+    bottom: 4px;
+    content: "";
+    height: 16px;
+    left: 4px;
+    position: absolute;
+    transition: .4s;
+    width: 16px;
+    border-radius: 50%;
+}
+
+input:checked+.slider {
+    background-color: var(--accent-color);
+}
+
+input:checked+.slider:before {
+    transform: translateX(36px);
+}
+
+.slider .icon {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px;
+    line-height: 1;
+}
+
+.sun {
+    left: 8px;
+    opacity: 0;
+    transition: .4s;
+}
+
+.moon {
+    right: 8px;
+    transition: .4s;
+}
+
+input:checked+.slider .sun {
+    opacity: 1;
+}
+
+input:checked+.slider .moon {
+    opacity: 0;
 }
 
 @media (max-width: 600px) {

@@ -7,11 +7,22 @@
     <title>Smart Job Assistant</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 
 <body>
     <div class="bg-shape one"></div>
     <div class="bg-shape two"></div>
+
+    <div class="theme-switch-wrapper">
+        <label class="theme-switch" for="checkbox">
+            <input type="checkbox" id="checkbox" />
+            <div class="slider round">
+                <div class="icon sun">☀️</div>
+                <div class="icon moon">🌙</div>
+            </div>
+        </label>
+    </div>
 
     <div class="container">
         <header>
@@ -28,6 +39,12 @@
                 </div>
                 <div class="menu-item" id="nav-enhance">
                     <span>🚀</span> Enhance CV
+                </div>
+                <div class="menu-item" id="nav-interview">
+                    <span>🎤</span> Mock Interview
+                </div>
+                <div class="menu-item" id="nav-roadmap">
+                    <span>🗺️</span> Career Roadmap
                 </div>
                 <div class="menu-divider"></div>
                 <h4>Developed By</h4>

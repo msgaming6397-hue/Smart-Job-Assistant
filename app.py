@@ -175,6 +175,99 @@ def enhance_page():
 def builder_page():
     return render_template('builder.html')
 
+@app.route('/interview')
+def interview_page():
+    return render_template('interview.html')
+
+@app.route('/roadmap')
+def roadmap_page():
+    return render_template('roadmap.html')
+
+@app.route('/generate-interview', methods=['POST'])
+def generate_interview():
+    # Check if text input (role) or file upload
+    if 'resume' in request.files:
+        file = request.files['resume']
+        if file.filename == '':
+            return jsonify({"error": "No file selected"}), 400
+        
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(filepath)
+            
+            text = ""
+            if filename.endswith('.pdf'):
+                text = extract_text_from_pdf(filepath)
+            elif filename.endswith('.docx'):
+                text = extract_text_from_docx(filepath)
+            
+            # Context is resume text
+            context_prompt = f"Resume Content:\n{text[:4000]}"
+            
+            try:
+                os.remove(filepath)
+            except: pass
+    else:
+        # Fallback manual role input (if we want to keep it, or just replace behavior)
+        data = request.form
+        role = data.get('role')
+        context_prompt = f"Target Role: {role}"
+
+    api_key = os.getenv("GEMINI_API_KEY")
+    if not api_key: return jsonify({"error": "No API Key"}), 500
+
+    try:
+        model = genai.GenerativeModel('gemini-2.5-flash')
+        prompt = f"""
+        You are an expert Interviewer. Based on the following candidate context, generate 5 relevant interview questions.
+        
+        {context_prompt}
+
+        Include a mix of Technical, Behavioral, and Project-specific questions based on the resume/role.
+        For each, provide a sample "Best Answer".
+        
+        Return ONLY a JSON list:
+        [
+            {{"type": "Technical/Behavioral", "question": "...", "answer": "..."}},
+            ...
+        ]
+        """
+        response = model.generate_content(prompt)
+        text = response.text
+        if "```json" in text: text = text.split("```json")[1].split("```")[0].strip()
+        elif "```" in text: text = text.split("```")[1].split("```")[0].strip()
+        return jsonify({"questions": json.loads(text)})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/generate-roadmap', methods=['POST'])
+def generate_roadmap():
+    data = request.json
+    current_role = data.get('current_role')
+    target_role = data.get('target_role')
+
+    api_key = os.getenv("GEMINI_API_KEY")
+    if not api_key: return jsonify({"error": "No API Key"}), 500
+
+    try:
+        model = genai.GenerativeModel('gemini-2.5-flash')
+        prompt = f"""
+        Create a 5-step Career Roadmap to go from {current_role} to {target_role}.
+        Return ONLY a JSON list of steps:
+        [
+            {{"step": "Step 1 Title", "description": "Details..."}},
+            ...
+        ]
+        """
+        response = model.generate_content(prompt)
+        text = response.text
+        if "```json" in text: text = text.split("```json")[1].split("```")[0].strip()
+        elif "```" in text: text = text.split("```")[1].split("```")[0].strip()
+        return jsonify({"roadmap": json.loads(text)})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 @app.route('/analyze', methods=['POST'])
 def analyze():
     if 'resume' not in request.files:
