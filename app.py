@@ -351,5 +351,13 @@ def generate_cover_letter():
     cover_letter = generate_cover_letter_ai(name, role, skills)
     return jsonify({"cover_letter": cover_letter})
 
+@app.route('/loaders')
+def loaders():
+    return render_template('loaders.html')
+
+@app.route('/backgrounds')
+def backgrounds():
+    return render_template('backgrounds.html')
+
 if __name__ == '__main__':
     app.run(debug=True)

@@ -64,9 +64,29 @@ document.addEventListener('DOMContentLoaded', () => {
         menuBox.classList.toggle('hidden');
     });
 
-    // Navigate to Enhance View (Separate Page)
+    // Navigate to Enhance View (Internal SPA with Background Change)
     navEnhance.addEventListener('click', () => {
-        window.location.href = '/enhance';
+        // Switch to enhance view
+        uploadView.classList.add('hidden');
+        dashboardView.classList.add('hidden');
+        enhanceView.classList.remove('hidden');
+        enhanceView.classList.add('active');
+        menuBox.classList.add('hidden'); // Close menu
+
+        // Change Background to Data Stream
+        document.body.className = 'bg-data-stream';
+        const layer = document.getElementById('bg-layer');
+        if (layer) {
+            layer.innerHTML = '';
+            for (let i = 0; i < 20; i++) {
+                const col = document.createElement('div');
+                col.className = 'stream-col';
+                col.style.left = Math.random() * 100 + '%';
+                col.style.animationDuration = (2 + Math.random() * 3) + 's';
+                col.style.animationDelay = Math.random() * 2 + 's';
+                layer.appendChild(col);
+            }
+        }
     });
 
     // Navigate to Resume Builder (Separate Page)
@@ -91,11 +111,30 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     enhanceBackBtn.addEventListener('click', () => {
-        switchView('upload');
+        // Switch back to upload view
+        enhanceView.classList.add('hidden');
+        uploadView.classList.remove('hidden');
+        uploadView.classList.add('active');
+
         enhanceForm.reset();
         enhanceResults.classList.add('hidden');
         enhanceResults.innerHTML = '';
         enhanceFileName.classList.add('hidden');
+
+        // Restore Floating Docs Background
+        document.body.className = 'bg-floating-docs';
+        const layer = document.getElementById('bg-layer');
+        if (layer) {
+            layer.innerHTML = '';
+            for (let i = 0; i < 15; i++) {
+                const doc = document.createElement('div');
+                doc.className = 'doc-icon';
+                doc.style.left = Math.random() * 100 + '%';
+                doc.style.animationDuration = (10 + Math.random() * 10) + 's';
+                doc.style.animationDelay = Math.random() * 5 + 's';
+                layer.appendChild(doc);
+            }
+        }
     });
 
     // Close menu when clicking outside

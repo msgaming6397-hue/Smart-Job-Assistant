@@ -51,9 +51,22 @@
     </style>
 </head>
 
-<body>
-    <div class="bg-shape one"></div>
-    <div class="bg-shape two"></div>
+</head>
+
+<body class="bg-ladder">
+    <!-- Background Layer -->
+    <div id="bg-layer"
+        style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; overflow: hidden;"></div>
+
+    <script>
+        const layer = document.getElementById('bg-layer');
+        for (let i = 0; i < 5; i++) {
+            const step = document.createElement('div');
+            step.className = 'ladder-step';
+            step.style.bottom = (i * 100) + 'px';
+            layer.appendChild(step);
+        }
+    </script>
 
     <div class="theme-switch-wrapper">
         <label class="theme-switch" for="checkbox">
@@ -94,8 +107,9 @@
                     Roadmap</button>
 
                 <div id="loading" class="loading hidden">
-                    <div class="spinner"></div>
-                    <p>AI is mapping your future...</p>
+                    <!-- Glitch Text Loader -->
+                    <div class="glitch-loader">LOADING...</div>
+                    <p style="margin-top: 15px;">AI is mapping your future...</p>
                 </div>
 
                 <div id="results" class="enhance-output hidden" style="margin-top: 30px;">

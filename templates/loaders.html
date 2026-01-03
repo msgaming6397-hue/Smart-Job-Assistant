@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Creative Loaders Demo</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #050507;
+            color: #fff;
+            font-family: 'Outfit', sans-serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        h1 {
+            margin-bottom: 50px;
+            font-weight: 300;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            background: linear-gradient(to right, #6366f1, #38bdf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .loader-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 50px;
+            width: 80%;
+            max-width: 1200px;
+        }
+
+        .loader-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .loader-card:hover {
+            border-color: #6366f1;
+            background: rgba(255, 255, 255, 0.05);
+            transform: translateY(-5px);
+        }
+
+        .loader-card h3 {
+            margin-top: 30px;
+            font-weight: 400;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        /* --- Loader 1: Neural Orb --- */
+        .neural-spinner {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            position: relative;
+            background: radial-gradient(circle at center, #6366f1, transparent 60%);
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.5);
+        }
+
+        .neural-spinner::before,
+        .neural-spinner::after {
+            content: '';
+            position: absolute;
+            border-radius: 50%;
+            border: 3px solid transparent;
+            border-top-color: #38bdf8;
+            border-bottom-color: #38bdf8;
+            top: -10px;
+            left: -10px;
+            right: -10px;
+            bottom: -10px;
+            animation: spin 3s linear infinite;
+        }
+
+        .neural-spinner::after {
+            top: -20px;
+            left: -20px;
+            right: -20px;
+            bottom: -20px;
+            border-top-color: #818cf8;
+            border-bottom-color: #818cf8;
+            animation: spin 5s linear infinite reverse;
+            opacity: 0.6;
+        }
+
+        /* --- Loader 2: Tech Wave --- */
+        .wave-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 60px;
+            gap: 6px;
+        }
+
+        .wave-bar {
+            width: 6px;
+            height: 20px;
+            background: #6366f1;
+            border-radius: 3px;
+            animation: wave 1.2s ease-in-out infinite;
+            box-shadow: 0 0 10px rgba(99, 102, 241, 0.5);
+        }
+
+        .wave-bar:nth-child(2) {
+            animation-delay: 0.1s;
+            background: #818cf8;
+        }
+
+        .wave-bar:nth-child(3) {
+            animation-delay: 0.2s;
+            background: #38bdf8;
+        }
+
+        .wave-bar:nth-child(4) {
+            animation-delay: 0.3s;
+            background: #6366f1;
+        }
+
+        .wave-bar:nth-child(5) {
+            animation-delay: 0.4s;
+            background: #818cf8;
+        }
+
+        @keyframes wave {
+
+            0%,
+            100% {
+                height: 20px;
+                transform: translateY(0);
+            }
+
+            50% {
+                height: 50px;
+                transform: translateY(-10px);
+                background: #fff;
+                box-shadow: 0 0 15px #fff;
+            }
+        }
+
+        /* --- Loader 3: Galaxy Morph --- */
+        .galaxy-blob {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, #6366f1, #38bdf8);
+            border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+            animation: morph 3s ease-in-out infinite alternate, rotate 10s linear infinite;
+            filter: blur(8px);
+            opacity: 0.8;
+            position: absolute;
+        }
+
+        .galaxy-core {
+            width: 70px;
+            height: 70px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            position: relative;
+            z-index: 2;
+            animation: rotate 5s linear infinite reverse;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes rotate {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes morph {
+            0% {
+                border-radius: 40% 60% 60% 40% / 60% 30% 70% 40%;
+            }
+
+            100% {
+                border-radius: 40% 60%;
+            }
+        }
+
+        /* --- Loader 4: DNA Helix --- */
+        .dna-loader {
+            display: flex;
+            align-items: center;
+            height: 60px;
+        }
+
+        .dna-dot {
+            width: 8px;
+            height: 8px;
+            background: #6366f1;
+            border-radius: 50%;
+            margin: 0 3px;
+            animation: dna 1.5s ease-in-out infinite;
+        }
+
+        .dna-dot:nth-child(even) {
+            background: #38bdf8;
+            animation-delay: 0.75s;
+        }
+
+        @keyframes dna {
+
+            0%,
+            100% {
+                transform: translateY(0) scale(1);
+                opacity: 0.5;
+            }
+
+            50% {
+                transform: translateY(-20px) scale(1.3);
+                opacity: 1;
+            }
+        }
+
+        /* --- Loader 5: Coding Terminal --- */
+        .terminal-loader {
+            font-family: 'Courier New', monospace;
+            font-size: 1.2rem;
+            color: #34d399;
+            font-weight: bold;
+            position: relative;
+        }
+
+        .terminal-loader::after {
+            content: '_';
+            animation: blink 0.8s infinite;
+        }
+
+        @keyframes blink {
+            50% {
+                opacity: 0;
+            }
+        }
+
+        /* --- Loader 6: Pulse Rings --- */
+        .pulse-rings {
+            position: relative;
+            width: 60px;
+            height: 60px;
+        }
+
+        .ring {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 2px solid #6366f1;
+            opacity: 0;
+            animation: pulse-ring 2s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite;
+        }
+
+        .ring:nth-child(2) {
+            animation-delay: 0.5s;
+        }
+
+        @keyframes pulse-ring {
+            0% {
+                transform: scale(0.1);
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(1.5);
+                opacity: 0;
+            }
+        }
+
+        /* --- Loader 7: Hexagon Hive --- */
+        .hex-loader {
+            display: flex;
+            gap: 5px;
+        }
+
+        .hex {
+            width: 15px;
+            height: 15px;
+            background: #818cf8;
+            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+            animation: hex-fade 1.5s infinite;
+        }
+
+        .hex:nth-child(2) {
+            animation-delay: 0.2s;
+            background: #38bdf8;
+        }
+
+        .hex:nth-child(3) {
+            animation-delay: 0.4s;
+            background: #6366f1;
+        }
+
+        @keyframes hex-fade {
+
+            0%,
+            100% {
+                opacity: 0.3;
+                transform: scale(0.8);
+            }
+
+            50% {
+                opacity: 1;
+                transform: scale(1.1);
+            }
+        }
+
+        /* --- Loader 8: Quantum Rings --- */
+        .quantum-loader {
+            width: 60px;
+            height: 60px;
+            position: relative;
+        }
+
+        .q-ring {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 4px solid transparent;
+            border-top-color: #6366f1;
+            animation: spin 2s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite;
+        }
+
+        .q-ring:nth-child(2) {
+            width: 70%;
+            height: 70%;
+            top: 15%;
+            left: 15%;
+            border-top-color: #38bdf8;
+            animation-duration: 1.5s;
+            animation-direction: reverse;
+        }
+
+        .q-ring:nth-child(3) {
+            width: 40%;
+            height: 40%;
+            top: 30%;
+            left: 30%;
+            border-top-color: #818cf8;
+            animation-duration: 1s;
+        }
+
+        /* --- Loader 9: Liquid Goo --- */
+        .goo-loader {
+            width: 100px;
+            height: 40px;
+            background: #fff;
+            filter: contrast(20);
+            background: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .goo-dot {
+            width: 16px;
+            height: 16px;
+            background: #6366f1;
+            border-radius: 50%;
+            position: absolute;
+            filter: blur(4px);
+            animation: goo-move 2s infinite ease-in-out;
+        }
+
+        .goo-dot:nth-child(2) {
+            animation-delay: -0.5s;
+            background: #38bdf8;
+        }
+
+        @keyframes goo-move {
+
+            0%,
+            100% {
+                transform: translateX(-20px);
+            }
+
+            50% {
+                transform: translateX(20px);
+            }
+        }
+
+        /* --- Loader 10: Neon Cube --- */
+        .cube-loader {
+            width: 40px;
+            height: 40px;
+            background: #6366f1;
+            animation: cube-spin 1.5s infinite ease-in-out;
+        }
+
+        @keyframes cube-spin {
+            0% {
+                transform: perspective(120px) rotateX(0deg) rotateY(0deg);
+            }
+
+            50% {
+                transform: perspective(120px) rotateX(-180.1deg) rotateY(0deg);
+                background: #38bdf8;
+            }
+
+            100% {
+                transform: perspective(120px) rotateX(-180deg) rotateY(-179.9deg);
+                background: #6366f1;
+            }
+        }
+
+        /* --- Loader 11: Wifi Signal --- */
+        .wifi-loader {
+            width: 40px;
+            height: 40px;
+            position: relative;
+        }
+
+        .wifi-curve {
+            position: absolute;
+            border: 3px solid transparent;
+            border-top-color: #fff;
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation: wifi-fade 1.5s infinite;
+        }
+
+        .wifi-curve:nth-child(1) {
+            width: 40px;
+            height: 40px;
+            animation-delay: 0s;
+        }
+
+        .wifi-curve:nth-child(2) {
+            width: 25px;
+            height: 25px;
+            animation-delay: 0.3s;
+            margin-top: 5px;
+        }
+
+        .wifi-curve:nth-child(3) {
+            width: 10px;
+            height: 10px;
+            animation-delay: 0.6s;
+            margin-top: 10px;
+            background: #fff;
+            border: none;
+        }
+
+        @keyframes wifi-fade {
+
+            0%,
+            100% {
+                opacity: 0.2;
+            }
+
+            50% {
+                opacity: 1;
+            }
+        }
+
+        /* --- Loader 12: Hourglass --- */
+        .hourglass-loader {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #6366f1;
+            border-radius: 50%;
+            border-top-color: transparent;
+            border-bottom-color: transparent;
+            animation: spin 1.5s linear infinite;
+        }
+
+        .hourglass-loader::after {
+            content: '';
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            right: 5px;
+            bottom: 5px;
+            border: 3px solid #38bdf8;
+            border-radius: 50%;
+            border-left-color: transparent;
+            border-right-color: transparent;
+            animation: spin 0.8s linear infinite reverse;
+        }
+
+        /* --- Loader 13: Glitch Text --- */
+        .glitch-loader {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #fff;
+            position: relative;
+        }
+
+        .glitch-loader::before,
+        .glitch-loader::after {
+            content: 'LOADING...';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.8;
+        }
+
+        .glitch-loader::before {
+            color: #f0f;
+            animation: glitch 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) both infinite;
+            z-index: -1;
+            transform: translate(2px, 2px);
+        }
+
+        .glitch-loader::after {
+            color: #0ff;
+            animation: glitch 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) both infinite reverse;
+            z-index: -2;
+            transform: translate(-2px, -2px);
+        }
+
+        @keyframes glitch {
+            0% {
+                transform: translate(0);
+            }
+
+            20% {
+                transform: translate(-2px, 2px);
+            }
+
+            40% {
+                transform: translate(-2px, -2px);
+            }
+
+            60% {
+                transform: translate(2px, 2px);
+            }
+
+            80% {
+                transform: translate(2px, -2px);
+            }
+
+            100% {
+                transform: translate(0);
+            }
+        }
+
+        /* --- Loader 14: Solar System --- */
+        .solar-loader {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            animation: spin 4s linear infinite;
+        }
+
+        .solar-loader::before {
+            content: '';
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #6366f1;
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 10px #6366f1;
+        }
+
+        .planet {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: #38bdf8;
+            border-radius: 50%;
+            top: 4px;
+            left: 50%;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Choose Your Intelligence Style</h1>
+    <div class="loader-grid">
+        <div class="loader-card" onclick="alert('You chose Neural Orb!')">
+            <div class="neural-spinner"></div>
+            <h3>1. Neural Orb</h3>
+        </div>
+        <div class="loader-card" onclick="alert('You chose Tech Wave!')">
+            <div class="wave-container">
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+            </div>
+            <h3>2. Tech Wave</h3>
+        </div>
+        <div class="loader-card" onclick="alert('You chose Galaxy Morph!')">
+            <div
+                style="position: relative; width: 80px; height: 80px; display: flex; align-items:center; justify-content:center;">
+                <div class="galaxy-blob"></div>
+                <div class="galaxy-core"></div>
+            </div>
+            <h3>3. Galaxy Morph</h3>
+        </div>
+
+        <div class="loader-card" onclick="alert('You chose DNA Helix!')">
+            <div class="dna-loader">
+                <div class="dna-dot"></div>
+                <div class="dna-dot"></div>
+                <div class="dna-dot"></div>
+                <div class="dna-dot"></div>
+                <div class="dna-dot"></div>
+                <div class="dna-dot"></div>
+            </div>
+            <h3>4. DNA Helix</h3>
+        </div>
+
+        <div class="loader-card" onclick="alert('You chose Code Typer!')">
+            <div class="terminal-loader">Analyzing...</div>
+            <h3>5. Code Typer</h3>
+        </div>
+
+        <div class="loader-card" onclick="alert('You chose Pulse Rings!')">
+            <div class="pulse-rings">
+                <div class="ring"></div>
+                <div class="ring"></div>
+            </div>
+            <h3>6. Pulse Rings</h3>
+        </div>
+
+        <div class="loader-card" onclick="alert('You chose Hexagon Hive!')">
+            <div class="hex-loader">
+                <div class="hex"></div>
+                <div class="hex"></div>
+                <div class="hex"></div>
+            </div>
+            <h3>7. Hexagon Hive</h3>
+        </div>
+        <!-- NEW LOADERS 8-14 -->
+        <div class="loader-card" onclick="alert('You chose Quantum Rings!')">
+            <div class="quantum-loader">
+                <div class="q-ring"></div>
+                <div class="q-ring"></div>
+                <div class="q-ring"></div>
+            </div>
+            <h3>8. Quantum Rings</h3>
+        </div>
+
+        <div class="loader-card" onclick="alert('You chose Liquid Goo!')">
+            <div class="goo-loader">
+                <div class="goo-dot"></div>
+                <div class="goo-dot"></div>
+            </div>
+            <h3>9. Liquid Goo</h3>
+        </div>
+
+        <div class="loader-card" onclick="alert('You chose Neon Cube!')">
+            <div class="cube-loader"></div>
+            <h3>10. Neon Cube</h3>
+        </div>
+
+        <div class="loader-card" onclick="alert('You chose Wifi Signal!')">
+            <div class="wifi-loader">
+                <div class="wifi-curve"></div>
+                <div class="wifi-curve"></div>
+                <div class="wifi-curve"></div>
+            </div>
+            <h3>11. Wifi Signal</h3>
+        </div>
+
+        <div class="loader-card" onclick="alert('You chose Hourglass!')">
+            <div class="hourglass-loader"></div>
+            <h3>12. Hourglass</h3>
+        </div>
+
+        <div class="loader-card" onclick="alert('You chose Glitch Text!')">
+            <div class="glitch-loader">LOADING...</div>
+            <h3>13. Glitch Text</h3>
+        </div>
+
+        <div class="loader-card" onclick="alert('You chose Solar System!')">
+            <div class="solar-loader">
+                <div class="planet"></div>
+            </div>
+            <h3>14. Solar System</h3>
+        </div>
+
+    </div>
+</body>
+
+</html>

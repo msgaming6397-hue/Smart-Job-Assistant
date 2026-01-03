@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Backgrounds Demo - Smart Job Assistant</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --accent-color: #6366f1;
+            --secondary-color: #38bdf8;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Outfit', sans-serif;
+            color: #fff;
+            overflow-x: hidden;
+            transition: background 0.5s ease;
+        }
+
+        /* --- UI Overlay for Demo --- */
+        .controls {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 300px;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            box-sizing: border-box;
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .controls h2 {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            padding-bottom: 10px;
+        }
+
+        .bg-option {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .bg-option:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--accent-color);
+        }
+
+        .bg-option.active {
+            border-color: var(--secondary-color);
+            background: rgba(99, 102, 241, 0.2);
+        }
+
+        /* --- Preview Content --- */
+        .preview-area {
+            margin-left: 300px;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .dummy-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            padding: 40px;
+            width: 400px;
+            text-align: center;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        /* ================= BACKGROUND STYLES ================= */
+
+        /* 1. Neon Mesh (Current) */
+        .bg-neon-mesh {
+            background-color: #050507;
+        }
+
+        .bg-neon-mesh .shape {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(100px);
+            z-index: -1;
+            animation: float 10s infinite alternate;
+        }
+
+        .bg-neon-mesh .s1 {
+            width: 400px;
+            height: 400px;
+            background: #6366f1;
+            top: -10%;
+            left: 20%;
+        }
+
+        .bg-neon-mesh .s2 {
+            width: 300px;
+            height: 300px;
+            background: #240046;
+            bottom: -10%;
+            right: 20%;
+            animation-delay: 2s;
+        }
+
+        /* 2. Cyber Grid */
+        .bg-cyber-grid {
+            background-color: #0b0c15;
+            background-image:
+                linear-gradient(rgba(99, 102, 241, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(99, 102, 241, 0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            perspective: 500px;
+        }
+
+        .bg-cyber-grid::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, transparent 20%, #0b0c15 90%);
+        }
+
+        /* 3. Deep Space */
+        .bg-deep-space {
+            background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
+        }
+
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+        }
+
+        /* 4. Aurora Borealis */
+        .bg-aurora {
+            background: #000;
+            background: linear-gradient(135deg, #0cebeb 0%, #20e3b2 50%, #29ffc6 100%);
+            /* Simplified gradient replacer for animation complexity, using CSS gradients generally */
+            background: linear-gradient(-45deg, #0f0c29, #302b63, #24243e);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+        }
+
+        @keyframes gradientBG {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        /* 5. Minimal Dots */
+        .bg-minimal-dots {
+            background-color: #111;
+            background-image: radial-gradient(#333 1px, transparent 0);
+            background-size: 20px 20px;
+        }
+
+        /* 6. Liquid Magma */
+        .bg-liquid-magma {
+            background: #1a1a2e;
+        }
+
+        .blob {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 500px;
+            height: 500px;
+            background: linear-gradient(180deg, #4f46e5 0%, #06b6d4 100%);
+            filter: blur(80px);
+            border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+            animation: magma 8s infinite alternate;
+            opacity: 0.4;
+        }
+
+        @keyframes magma {
+            0% {
+                border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+                transform: translate(-50%, -50%) rotate(0deg);
+            }
+
+            100% {
+                border-radius: 70% 30% 30% 70% / 70% 70% 30% 30%;
+                transform: translate(-50%, -50%) rotate(180deg);
+            }
+        }
+
+        /* 7. Floating Documents */
+        .bg-floating-docs {
+            background-color: #0f172a;
+            overflow: hidden;
+        }
+
+        .doc-icon {
+            position: absolute;
+            width: 40px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            animation: floatUp 15s linear infinite;
+        }
+
+        .doc-icon::before {
+            content: '';
+            position: absolute;
+            top: 10px;
+            left: 5px;
+            right: 5px;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 5px 0 rgba(255, 255, 255, 0.1), 0 10px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        @keyframes floatUp {
+            0% {
+                transform: translateY(110vh) rotate(0deg);
+                opacity: 0;
+            }
+
+            10% {
+                opacity: 0.5;
+            }
+
+            90% {
+                opacity: 0.5;
+            }
+
+            100% {
+                transform: translateY(-10vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        /* 8. Data Streams (Matrix-lite) */
+        .bg-data-stream {
+            background-color: #000;
+        }
+
+        .stream-col {
+            position: absolute;
+            top: -100%;
+            width: 1px;
+            height: 50%;
+            background: linear-gradient(to bottom, transparent, #38bdf8, transparent);
+            animation: rain 3s linear infinite;
+        }
+
+        @keyframes rain {
+            0% {
+                top: -100%;
+            }
+
+            100% {
+                top: 100%;
+            }
+        }
+
+        /* 9. Network Connections */
+        .bg-network {
+            background-color: #050507;
+        }
+
+        .network-node {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #6366f1;
+            border-radius: 50%;
+            animation: drift 20s infinite alternate linear;
+        }
+
+        .network-line {
+            position: absolute;
+            height: 1px;
+            background: rgba(99, 102, 241, 0.2);
+            transform-origin: 0 0;
+        }
+
+        @keyframes drift {
+            0% {
+                transform: translate(0, 0);
+            }
+
+            100% {
+                transform: translate(100px, 50px);
+            }
+        }
+
+        /* 10. Success Targets */
+        .bg-targets {
+            background-color: #0f0f13;
+        }
+
+        .target-circle {
+            position: absolute;
+            border: 2px solid rgba(56, 189, 248, 0.1);
+            border-radius: 50%;
+            animation: pulse-target 4s infinite;
+        }
+
+        @keyframes pulse-target {
+            0% {
+                transform: scale(0.5);
+                opacity: 0;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+
+            100% {
+                transform: scale(1.5);
+                opacity: 0;
+            }
+        }
+
+        /* 11. Career Ladder */
+        .bg-ladder {
+            background-color: #111;
+            background-image:
+                linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 100px 100px;
+        }
+
+        .ladder-step {
+            position: absolute;
+            width: 60px;
+            height: 4px;
+            background: rgba(99, 102, 241, 0.3);
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .climber {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #38bdf8;
+            border-radius: 50%;
+            left: 50%;
+            transform: translateX(-50%);
+            animation: climb 5s infinite steps(5);
+        }
+
+        @keyframes climb {
+            0% {
+                bottom: 0;
+                opacity: 0;
+            }
+
+            10% {
+                opacity: 1;
+            }
+
+            100% {
+                bottom: 100%;
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+
+<body id="demo-body" class="bg-neon-mesh">
+
+    <!-- Active Background Elements (Dynamic) -->
+    <div id="bg-layer"
+        style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; overflow: hidden;">
+        <!-- Default Neon Mesh -->
+        <div class="shape s1"></div>
+        <div class="shape s2"></div>
+    </div>
+
+    <div class="controls">
+        <h2>Select Background</h2>
+        <div class="bg-option active" onclick="setBg('neon-mesh', this)">
+            <strong>1. Neon Mesh</strong><br>
+            <span style="font-size:0.8rem; color:#aaa;">Current, Vibrant, Abstract</span>
+        </div>
+        <div class="bg-option" onclick="setBg('cyber-grid', this)">
+            <strong>2. Cyber Grid</strong><br>
+            <span style="font-size:0.8rem; color:#aaa;">Tech, Structured, Retro</span>
+        </div>
+        <div class="bg-option" onclick="setBg('deep-space', this)">
+            <strong>3. Deep Space</strong><br>
+            <span style="font-size:0.8rem; color:#aaa;">Dark, Minimal, Stars</span>
+        </div>
+        <div class="bg-option" onclick="setBg('aurora', this)">
+            <strong>4. Midnight Aurora</strong><br>
+            <span style="font-size:0.8rem; color:#aaa;">Smooth Gradient, Calm</span>
+        </div>
+        <div class="bg-option" onclick="setBg('minimal-dots', this)">
+            <strong>5. Minimal Dots</strong><br>
+            <span style="font-size:0.8rem; color:#aaa;">Clean, Patterned, Professional</span>
+        </div>
+        <div class="bg-option" onclick="setBg('liquid-magma', this)">
+            <strong>6. Digital Fluid</strong><br>
+            <span style="font-size:0.8rem; color:#aaa;">Modern, Flowing, Soft</span>
+        </div>
+        <div class="bg-option" onclick="setBg('floating-docs', this)">
+            <strong>7. Floating Docs</strong><br>
+            <span style="font-size:0.8rem; color:#aaa;">Project related, Particles</span>
+        </div>
+        <div class="bg-option" onclick="setBg('data-stream', this)">
+            <strong>8. Data Stream</strong><br>
+            <span style="font-size:0.8rem; color:#aaa;">Matrix style, Code rain</span>
+        </div>
+        <div class="bg-option" onclick="setBg('network', this)">
+            <strong>9. Network</strong><br>
+            <span style="font-size:0.8rem; color:#aaa;">Connected nodes, AI feel</span>
+        </div>
+        <div class="bg-option" onclick="setBg('targets', this)">
+            <strong>10. Success Targets</strong><br>
+            <span style="font-size:0.8rem; color:#aaa;">Focus, Goal oriented</span>
+        </div>
+        <div class="bg-option" onclick="setBg('ladder', this)">
+            <strong>11. Career Ladder</strong><br>
+            <span style="font-size:0.8rem; color:#aaa;">Growth, Steps, Climb</span>
+        </div>
+        <div style="margin-top: 20px; font-size: 0.9rem; color: #888;">
+            * Click to preview. Tell me the number to apply.
+        </div>
+    </div>
+
+    <div class="preview-area">
+        <div class="dummy-card">
+            <h2 style="margin-top: 0;">SmartJobAI</h2>
+            <p>This is how your content will look on this background.</p>
+            <button
+                style="background: linear-gradient(135deg, #6366f1, #38bdf8); border: none; padding: 10px 20px; color: white; border-radius: 20px;">Demo
+                Button</button>
+        </div>
+    </div>
+
+    <style>
+        @keyframes float {
+            0% {
+                transform: translate(0, 0);
+            }
+
+            100% {
+                transform: translate(30px, 50px);
+            }
+        }
+    </style>
+
+    <script>
+        function setBg(type, el) {
+            // Updated active state
+            document.querySelectorAll('.bg-option').forEach(d => d.classList.remove('active'));
+            el.classList.add('active');
+
+            const body = document.getElementById('demo-body');
+            const layer = document.getElementById('bg-layer');
+
+            // Reset
+            body.className = '';
+            layer.innerHTML = '';
+
+            // Apply
+            body.classList.add('bg-' + type);
+
+            if (type === 'neon-mesh') {
+                layer.innerHTML = '<div class="shape s1"></div><div class="shape s2"></div>';
+            } else if (type === 'cyber-grid') {
+                // CSS handles pattern
+            } else if (type === 'deep-space') {
+                for (let i = 0; i < 50; i++) {
+                    const star = document.createElement('div');
+                    star.className = 'star';
+                    star.style.width = Math.random() * 3 + 'px';
+                    star.style.height = star.style.width;
+                    star.style.top = Math.random() * 100 + '%';
+                    star.style.left = Math.random() * 100 + '%';
+                    star.style.opacity = Math.random();
+                    layer.appendChild(star);
+                }
+            } else if (type === 'liquid-magma') {
+                layer.innerHTML = '<div class="blob"></div>';
+            } else if (type === 'floating-docs') {
+                for (let i = 0; i < 15; i++) {
+                    const doc = document.createElement('div');
+                    doc.className = 'doc-icon';
+                    doc.style.left = Math.random() * 100 + '%';
+                    doc.style.animationDuration = (10 + Math.random() * 10) + 's';
+                    doc.style.animationDelay = Math.random() * 5 + 's';
+                    layer.appendChild(doc);
+                }
+            } else if (type === 'data-stream') {
+                for (let i = 0; i < 20; i++) {
+                    const col = document.createElement('div');
+                    col.className = 'stream-col';
+                    col.style.left = Math.random() * 100 + '%';
+                    col.style.animationDuration = (2 + Math.random() * 3) + 's';
+                    col.style.animationDelay = Math.random() * 2 + 's';
+                    layer.appendChild(col);
+                }
+            } else if (type === 'network') {
+                for (let i = 0; i < 20; i++) {
+                    const node = document.createElement('div');
+                    node.className = 'network-node';
+                    node.style.top = Math.random() * 100 + '%';
+                    node.style.left = Math.random() * 100 + '%';
+                    node.style.animationDuration = (10 + Math.random() * 10) + 's';
+                    layer.appendChild(node);
+                }
+            } else if (type === 'targets') {
+                for (let i = 0; i < 5; i++) {
+                    const t = document.createElement('div');
+                    t.className = 'target-circle';
+                    t.style.width = '100px'; t.style.height = '100px';
+                    t.style.top = Math.random() * 80 + 10 + '%';
+                    t.style.left = Math.random() * 80 + 10 + '%';
+                    t.style.animationDelay = Math.random() * 2 + 's';
+                    layer.appendChild(t);
+                }
+            } else if (type === 'ladder') {
+                for (let i = 0; i < 5; i++) {
+                    const step = document.createElement('div');
+                    step.className = 'ladder-step';
+                    step.style.bottom = (i * 100) + 'px';
+                    layer.appendChild(step);
+                }
+            }
+        }
+    </script>
+</body>
+
+</html>
