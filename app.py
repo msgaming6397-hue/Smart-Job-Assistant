@@ -33,31 +33,57 @@ app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev_warning_change_me_in_pro
 app.config['UPLOAD_FOLDER'] = tempfile.gettempdir() 
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB limit
 
-# Database Configuration
-# Fallback to /tmp/users.db on Render if no DATABASE_URL is set (avoids read-only errors)
-default_db_path = os.path.join(tempfile.gettempdir(), 'users.db')
-db_url = os.getenv('DATABASE_URL', f'sqlite:///{default_db_path}')
-
-if db_url.startswith("postgres://"):
-    db_url = db_url.replace("postgres://", "postgresql://", 1)
+# Fail-Safe Database Setup
+DB_AVAILABLE = True
+try:
+    default_db_path = os.path.join(tempfile.gettempdir(), 'users.db')
+    db_url = os.getenv('DATABASE_URL', f'sqlite:///{default_db_path}')
+    if db_url.startswith("postgres://"):
+        db_url = db_url.replace("postgres://", "postgresql://", 1)
+        
+    app.config['SQLALCHEMY_DATABASE_URI'] = db_url
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     
-app.config['SQLALCHEMY_DATABASE_URI'] = db_url
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    db = SQLAlchemy(app)
+    
+    # User Model (Must be defined before creation)
+    class User(UserMixin, db.Model):
+        id = db.Column(db.Integer, primary_key=True)
+        username = db.Column(db.String(150), unique=True, nullable=False)
+        password = db.Column(db.String(150), nullable=False)
+
+    with app.app_context():
+        db.create_all()
+        logger.info("Database initialized successfully.")
+        
+except Exception as e:
+    logger.error(f"DATABASE FAILURE: {e}. Switching to DEMO MODE.")
+    DB_AVAILABLE = False
+    # Create a dummy User class for demo mode
+    class User(UserMixin):
+        def __init__(self, id, username, password):
+            self.id = id
+            self.username = username
+            self.password = password
 
 ALLOWED_EXTENSIONS = {'pdf', 'docx'}
 
-db = SQLAlchemy(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 
-# Ensure tables exist (Run this at startup)
-with app.app_context():
-    try:
-        db.create_all()
-        logger.info(f"Database tables created successfully at {db_url}")
-    except Exception as e:
-        logger.error(f"Error creating database tables: {e}")
+# Demo User for Fallback
+DEMO_USER = User(id=1, username="demo", password=generate_password_hash("demo"))
+
+@login_manager.user_loader
+def load_user(user_id):
+    if DB_AVAILABLE:
+        try:
+            return User.query.get(int(user_id))
+        except:
+            return DEMO_USER if int(user_id) == 1 else None
+    else:
+        return DEMO_USER if int(user_id) == 1 else None
 
 # ... (rest of imports)
 
