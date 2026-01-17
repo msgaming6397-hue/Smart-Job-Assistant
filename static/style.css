@@ -61,6 +61,7 @@ body.light-mode .btn-outline:hover {
 body.light-mode input,
 body.light-mode textarea {
     color: #1f2937 !important;
+    /* Force dark text in light mode */
     background: #ffffff;
     border: 1px solid #e5e7eb;
 }
@@ -68,6 +69,22 @@ body.light-mode textarea {
 body.light-mode input::placeholder {
     color: #9ca3af;
 }
+
+/* Auth Container Light Mode Specifics */
+body.light-mode .auth-container {
+    background: #ffffff;
+    color: #1f2937;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+body.light-mode .auth-container h2 {
+    color: #1f2937;
+}
+
+body.light-mode .auth-container label {
+    color: #374151;
+}
+
 
 /* Light Mode specific element fixes */
 body.light-mode .ats-score-text {
@@ -208,7 +225,23 @@ header {
     border-color: rgba(255, 255, 255, 0.2);
 }
 
-/* Form & Input */
+/* Form & Input Global Defaults */
+input,
+textarea,
+select {
+    color: #333;
+    /* Default dark text */
+    background: #fff;
+    border: 1px solid #ddd;
+}
+
+/* Auth Container Global Overrides */
+.auth-container input {
+    color: #333 !important;
+    background: #fff !important;
+    border: 1px solid #ccc !important;
+}
+
 .drop-zone {
     border: 2px dashed rgba(255, 255, 255, 0.2);
     border-radius: 12px;

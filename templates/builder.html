@@ -4,78 +4,846 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Resume Builder - Coming Soon</title>
+    <title>AI Resume Builder - SmartJobAI</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=Inter:wght@300;400;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='builder.css') }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
-        .coming-soon-container {
+        /* Builder Specific Layout */
+        body {
+            overflow-y: auto;
+        }
+
+        /* Allow scrolling */
+
+        .builder-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 20px;
+            height: calc(100vh - 120px);
+        }
+
+        .builder-editor {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            overflow-y: auto;
+            scrollbar-width: thin;
+        }
+
+        .builder-preview {
+            background: rgba(255, 255, 255, 0.05);
+            /* Preview container bg */
+            border-radius: 20px;
+            padding: 30px;
             display: flex;
-            flex-direction: column;
-            align-items: center;
             justify-content: center;
-            height: 60vh;
-            text-align: center;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        .coming-soon-icon {
-            font-size: 4rem;
-            margin-bottom: 20px;
-            animation: float 3s ease-in-out infinite;
+        /* Editor Forms */
+        .form-section {
+            margin-bottom: 25px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 20px;
         }
 
-        .coming-soon-title {
-            font-size: 2.5rem;
-            font-weight: 700;
+        .form-section h3 {
+            font-size: 1.2rem;
+            color: var(--secondary-color);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .input-group-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .input-full {
+            width: 100%;
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+            color: #ccc;
+        }
+
+        input,
+        textarea {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
+            padding: 10px;
+            border-radius: 8px;
+            width: 100%;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        input:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+
+        .btn-small {
+            padding: 5px 10px;
+            font-size: 0.8rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: #fff;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .btn-small:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .ai-btn {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
             color: white;
+            cursor: pointer;
+            font-size: 0.8rem;
+            margin-top: 5px;
+        }
+
+        .ai-btn:hover {
+            box-shadow: 0 0 10px rgba(99, 102, 241, 0.5);
+        }
+
+        /* Resume Preview Paper (A4) */
+        #resume-paper {
+            width: 210mm;
+            min-height: 297mm;
+            background: white;
+            color: #333;
+            padding: 25mm !important;
+            /* Force padding for html2pdf? */
+            padding: 40px;
+            /* Screen padding */
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            font-family: 'Inter', sans-serif;
+            box-sizing: border-box;
+            transform-origin: top center;
+            /* Scaled down on small screens handled by JS or media query */
+            font-size: 11pt;
+            /* Print friendly font size */
+        }
+
+        /* Resume Styles (Base) */
+        .res-header {
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .res-name {
+            font-size: 24pt;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #222;
+        }
+
+        .res-role {
+            font-size: 14pt;
+            color: #555;
+            margin-bottom: 5px;
+        }
+
+        .res-contact {
+            font-size: 10pt;
+            color: #666;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .res-section {
+            margin-bottom: 20px;
+        }
+
+        .res-section-title {
+            font-size: 12pt;
+            font-weight: 700;
+            text-transform: uppercase;
+            border-bottom: 1px solid #ccc;
+            margin-bottom: 10px;
+            padding-bottom: 3px;
+            color: #222;
+        }
+
+        .res-item {
             margin-bottom: 10px;
         }
 
-        .coming-soon-text {
-            font-size: 1.1rem;
-            color: #b0b0b0;
-            max-width: 400px;
+        .res-item-header {
+            display: flex;
+            justify-content: space-between;
+            font-weight: 600;
+            font-size: 11pt;
         }
 
-        @keyframes float {
-            0% {
-                transform: translateY(0px);
-            }
+        .res-item-sub {
+            font-style: italic;
+            color: #555;
+            font-size: 10pt;
+            margin-bottom: 3px;
+        }
 
-            50% {
-                transform: translateY(-15px);
-            }
+        .res-item-desc {
+            font-size: 10.5pt;
+            color: #444;
+            line-height: 1.4;
+            white-space: pre-line;
+        }
 
-            100% {
-                transform: translateY(0px);
-            }
+        .res-skills-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .res-skill {
+            background: #eee;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 10pt;
+            color: #333;
+        }
+
+        /* Dynamic item container in editor */
+        .editor-item {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
         }
     </style>
 </head>
 
-<body>
-    <div class="bg-shape one"></div>
-    <div class="bg-shape two"></div>
+<body class="bg-floating-docs">
+    <div id="bg-layer"
+        style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; overflow: hidden;"></div>
 
-    <div class="container">
-        <header>
-            <div class="logo">SmartJob<span>AI</span></div>
-            <p>Career Tools Suite</p>
-            <div class="menu-icon" onclick="window.location.href='/'">🏠</div>
+    <div class="container" style="max-width: 1400px; padding: 20px;">
+        <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <div class="logo">SmartJob<span>AI</span> <span style="font-size: 1rem; color: #aaa; font-weight: normal;">|
+                    Builder</span></div>
+            <div style="display: flex; gap: 10px; align-items: center;">
+
+                <!-- Template Selector Button -->
+                <button class="btn-outline" onclick="openTemplateModal()">🎨 Change Template</button>
+
+                <!-- Import Button -->
+                <button class="btn-outline" onclick="document.getElementById('import-file').click()">📂 Import
+                    Resume</button>
+                <input type="file" id="import-file" hidden accept=".pdf,.docx" onchange="importResume(this)">
+
+                <button class="btn-outline" onclick="window.location.href='/'">Back to Dashboard</button>
+                <button class="btn-primary" onclick="exportPDF()">Download PDF</button>
+            </div>
         </header>
 
-        <main id="app">
-            <div class="glass-card full-width">
-                <div class="coming-soon-container">
-                    <div class="coming-soon-icon">🚧</div>
-                    <h1 class="coming-soon-title">Coming Soon</h1>
-                    <p class="coming-soon-text">We are working hard to build the ultimate AI Resume Builder for you.
-                        Stay tuned!</p>
-                    <br>
-                    <button class="btn-primary" onclick="window.location.href='/'">Return Home</button>
+        <div class="builder-layout">
+            <!-- Left: Editor -->
+            <div class="builder-editor">
+                <!-- Personal Info -->
+                <div class="form-section">
+                    <h3>Personal Info</h3>
+                    <div class="input-group-2">
+                        <div><label>Full Name</label><input type="text" id="in-name" placeholder="John Doe"></div>
+                        <div><label>Current Role</label><input type="text" id="in-role" placeholder="Software Engineer">
+                        </div>
+                    </div>
+                    <div class="input-group-2">
+                        <div><label>Email</label><input type="email" id="in-email" placeholder="john@example.com"></div>
+                        <div><label>Phone</label><input type="text" id="in-phone" placeholder="+1 234 567 890"></div>
+                    </div>
+                    <div class="input-group-2">
+                        <div><label>Location</label><input type="text" id="in-location" placeholder="New York, NY">
+                        </div>
+                        <div><label>LinkedIn/Portfolio</label><input type="text" id="in-link"
+                                placeholder="linkedin.com/in/john"></div>
+                    </div>
+                </div>
+
+                <!-- Summary -->
+                <div class="form-section">
+                    <h3>Professional Summary <button class="ai-btn" onclick="generateSummary()">✨ AI Generate</button>
+                    </h3>
+                    <textarea id="in-summary" rows="4" placeholder="Brief details about your career..."></textarea>
+                </div>
+
+                <!-- Experience -->
+                <div class="form-section">
+                    <h3>Experience <button class="btn-small" onclick="addExperience()">+ Add</button></h3>
+                    <div id="experience-list">
+                        <!-- Dynamic Experience Items -->
+                    </div>
+                </div>
+
+                <!-- Education -->
+                <div class="form-section">
+                    <h3>Education <button class="btn-small" onclick="addEducation()">+ Add</button></h3>
+                    <div id="education-list">
+                        <!-- Dynamic Education Items -->
+                    </div>
+                </div>
+
+                <!-- Skills -->
+                <div class="form-section">
+                    <h3>Skills</h3>
+                    <textarea id="in-skills" rows="3"
+                        placeholder="Python, React, Leadership, Project Management (Comma separated)"></textarea>
+                </div>
+
+            </div>
+
+            <!-- Right: Preview -->
+            <div class="builder-preview">
+                <div id="resume-wrapper">
+                    <div id="resume-paper">
+                        <!-- Header -->
+                        <div class="res-header">
+                            <div class="res-name" id="out-name">John Doe</div>
+                            <div class="res-role" id="out-role">Software Engineer</div>
+                            <div class="res-contact">
+                                <span id="out-email">john@example.com</span> |
+                                <span id="out-phone">+1 234 567 890</span> |
+                                <span id="out-location">New York, NY</span> |
+                                <span id="out-link">linkedin.com/in/john</span>
+                            </div>
+                        </div>
+
+                        <!-- Summary -->
+                        <div class="res-section" id="sec-summary">
+                            <div class="res-section-title">Professional Summary</div>
+                            <div class="res-item-desc" id="out-summary">
+                                Experienced software engineer with a passion for building scalable web applications...
+                            </div>
+                        </div>
+
+                        <!-- Experience -->
+                        <div class="res-section" id="sec-experience">
+                            <div class="res-section-title">Experience</div>
+                            <div id="out-experience-list">
+                                <!-- Items here -->
+                            </div>
+                        </div>
+
+                        <!-- Education -->
+                        <div class="res-section" id="sec-education">
+                            <div class="res-section-title">Education</div>
+                            <div id="out-education-list">
+                                <!-- Items here -->
+                            </div>
+                        </div>
+
+                        <!-- Skills -->
+                        <div class="res-section" id="sec-skills">
+                            <div class="res-section-title">Skills</div>
+                            <div class="res-skills-list" id="out-skills">
+                                <!-- Items here -->
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </main>
+        </div>
     </div>
+
+    <!-- Template Modal -->
+    <div id="template-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Select a Template</h2>
+                <button onclick="closeTemplateModal()" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body" id="template-grid">
+                <!-- Templates Rendered Here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Styles -->
+    <style>
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+            z-index: 2000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: #0f172a;
+            width: 90%;
+            max-width: 1200px;
+            height: 85%;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-header {
+            padding: 20px 30px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .modal-header h2 {
+            color: white;
+            margin: 0;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: #aaa;
+            font-size: 2rem;
+            cursor: pointer;
+        }
+
+        .close-btn:hover {
+            color: white;
+        }
+
+        .modal-body {
+            padding: 30px;
+            overflow-y: auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        /* Template Card in Modal */
+        .t-card {
+            background: transparent;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            position: relative;
+        }
+
+        .t-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .t-preview {
+            background: white;
+            height: 300px;
+            overflow: hidden;
+            border-radius: 6px;
+            position: relative;
+            border: 2px solid transparent;
+        }
+
+        .t-card:hover .t-preview {
+            border-color: var(--accent-color);
+        }
+
+        .t-name {
+            color: white;
+            text-align: center;
+            margin-top: 10px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        /* Selection Highlight */
+        .t-card.active .t-preview {
+            border-color: #4ade80;
+            box-shadow: 0 0 15px rgba(74, 222, 128, 0.4);
+        }
+
+        /* Helper for mini-resume zoom */
+        .modal-body .mini-res {
+            zoom: 0.25;
+            padding: 20px;
+            height: 100%;
+            color: #333;
+            pointer-events: none;
+        }
+    </style>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script>
+        // --- Builder Specific Script ---
+
+        let currentTemplate = 't-riga'; // Default updated to Riga
+
+        // --- Background Init (Re-used) ---
+        (function () {
+            const layer = document.getElementById('bg-layer');
+            if (layer) {
+                for (let i = 0; i < 15; i++) {
+                    const doc = document.createElement('div');
+                    doc.className = 'doc-icon';
+                    doc.style.left = Math.random() * 100 + '%';
+                    doc.style.animationDuration = (10 + Math.random() * 10) + 's';
+                    doc.style.animationDelay = Math.random() * 5 + 's';
+                    layer.appendChild(doc);
+                }
+            }
+        })();
+
+        // --- Live Update Logic ---
+        const inputs = ['name', 'role', 'email', 'phone', 'location', 'link', 'summary', 'skills'];
+        inputs.forEach(id => {
+            const el = document.getElementById('in-' + id);
+            if (el) {
+                el.addEventListener('input', updateResume);
+            }
+        });
+
+        // Initialize with one experience and education
+        window.addEventListener('load', () => {
+            // Check URL for template param
+            const urlParams = new URLSearchParams(window.location.search);
+            const tplParam = urlParams.get('template');
+            if (tplParam) currentTemplate = tplParam;
+
+            // If manual start, add empty. But if importing, don't.
+            if (document.getElementById('experience-list').children.length === 0) {
+                addExperience();
+                addEducation();
+            }
+            updateResume();
+            changeTemplate(currentTemplate);
+        });
+
+        function changeTemplate(tpl) {
+            currentTemplate = tpl;
+            const paper = document.getElementById('resume-paper');
+            // Remove all template classes
+            paper.className = '';
+            // Add new class
+            paper.classList.add(tpl);
+        }
+
+        function updateResume() {
+            inputs.forEach(id => {
+                const out = document.getElementById('out-' + id);
+                const el = document.getElementById('in-' + id);
+                if (out && el) {
+                    const val = el.value;
+                    if (id === 'skills') {
+                        // Render Skills as tags
+                        out.innerHTML = val.split(',').filter(s => s.trim()).map(s => `<span class="res-skill">${s.trim()}</span>`).join('');
+                    } else {
+                        out.innerText = val;
+                    }
+                }
+            });
+            updateExperiencePreview();
+            updateEducationPreview();
+        }
+
+        // --- Modal Logic ---
+        const templatesData = [
+            { id: 't-blue-dark', name: 'Blue Dark (John Doe)' },
+            { id: 't-gold-dark', name: 'Gold Dark (Emma Watson)' },
+            { id: 't-riga', name: 'Riga (Executive)' },
+            { id: 't-ivy-league', name: 'Ivy League (William Jackson)' },
+            { id: 't-standard-prof', name: 'Standard Professional' },
+            { id: 't-dark-header', name: 'Dark Gold Header' },
+            { id: 't-modern', name: 'Modern Clean' },
+            { id: 't-tech', name: 'Tech Monospace' },
+            { id: 't-executive', name: 'Executive' },
+            { id: 't-sidebar-left', name: 'Sidebar Left' },
+            { id: 't-timeline', name: 'Timeline' },
+            { id: 't-compact', name: 'Compact Grid' },
+            { id: 't-elegant', name: 'Elegant' },
+            { id: 't-serif-modern', name: 'Serif Modern' },
+            { id: 't-lavender', name: 'Lavender' },
+            { id: 't-swiss', name: 'Swiss Style' }
+        ];
+
+        // Mock Data for Preview
+        const mockData = `
+            <div class="res-header">
+                <div class="res-name">Davina Claire</div>
+                <div class="res-role">Artist</div>
+            </div>
+            <div class="res-section"><div class="res-section-title">Summary</div><div class="res-item-desc">Creative professional...</div></div>
+             <div class="res-section"><div class="res-section-title">Exp</div><div class="res-item-sub">Art Lead</div></div>
+        `;
+
+
+        function openTemplateModal() {
+            const modal = document.getElementById('template-modal');
+            const grid = document.getElementById('template-grid');
+            grid.innerHTML = '';
+
+            templatesData.forEach(t => {
+                const div = document.createElement('div');
+                div.className = `t-card ${t.id === currentTemplate ? 'active' : ''}`;
+                div.onclick = () => { selectTemplate(t.id); };
+                div.innerHTML = `
+                    <div class="t-preview">
+                        <div class="mini-res ${t.id}" id="resume-paper" style="width:100%; height:100%;">
+                            ${mockData}
+                        </div>
+                    </div>
+                    <div class="t-name">${t.name}</div>
+                `;
+                grid.appendChild(div);
+            });
+
+            modal.style.display = 'flex';
+        }
+
+        function closeTemplateModal() {
+            document.getElementById('template-modal').style.display = 'none';
+        }
+
+        function selectTemplate(id) {
+            changeTemplate(id);
+            closeTemplateModal();
+        }
+
+        // Close on outside click
+        window.onclick = function (event) {
+            const modal = document.getElementById('template-modal');
+            if (event.target == modal) {
+                closeTemplateModal();
+            }
+        }
+
+        // --- Import Resume Logic ---
+        async function importResume(input) {
+            if (!input.files || !input.files[0]) return;
+            const file = input.files[0];
+
+            // Show Loading State on Button
+            const btn = document.querySelector('button[onclick*="import-file"]');
+            const originalText = btn.innerText;
+            btn.innerText = '⏳ Parsing...';
+
+            const formData = new FormData();
+            formData.append('resume', file);
+
+            try {
+                const res = await fetch('/parse-resume', { method: 'POST', body: formData });
+                const data = await res.json();
+
+                if (data.error) {
+                    alert('Error: ' + data.error);
+                } else {
+                    // Populate Personal Info
+                    if (data.personal) {
+                        document.getElementById('in-name').value = data.personal.name || '';
+                        document.getElementById('in-role').value = data.personal.role || '';
+                        document.getElementById('in-email').value = data.personal.email || '';
+                        document.getElementById('in-phone').value = data.personal.phone || '';
+                        document.getElementById('in-location').value = data.personal.location || '';
+                        document.getElementById('in-link').value = data.personal.link || '';
+                        document.getElementById('in-summary').value = data.personal.summary || '';
+                    }
+
+                    // Populate Skills
+                    if (data.skills) {
+                        document.getElementById('in-skills').value = Array.isArray(data.skills) ? data.skills.join(', ') : data.skills;
+                    }
+
+                    // Populate Experience
+                    const expList = document.getElementById('experience-list');
+                    expList.innerHTML = ''; // Clear existing
+                    if (data.experience && data.experience.length > 0) {
+                        data.experience.forEach(exp => {
+                            addExperience(exp.company, exp.role, exp.start, exp.end, exp.description);
+                        });
+                    } else {
+                        addExperience(); // Add empty if none
+                    }
+
+                    // Populate Education
+                    const eduList = document.getElementById('education-list');
+                    eduList.innerHTML = ''; // Clear existing
+                    if (data.education && data.education.length > 0) {
+                        data.education.forEach(edu => {
+                            addEducation(edu.school, edu.degree, edu.year);
+                        });
+                    } else {
+                        addEducation(); // Add empty if none
+                    }
+
+                    updateResume();
+                    alert('Resume Imported Successfully!');
+                }
+            } catch (e) {
+                console.error(e);
+                alert('Failed to import resume.');
+            }
+
+            btn.innerText = originalText;
+            input.value = ''; // Reset
+        }
+
+        // --- Experience Logic (Updated to accept params) ---
+        function addExperience(company = '', role = '', start = '', end = '', desc = '') {
+            const div = document.createElement('div');
+            div.className = 'editor-item';
+            div.innerHTML = `
+                <div class="input-group-2">
+                    <input type="text" placeholder="Company Name" class="exp-company" value="${company}" oninput="updateResume()">
+                    <input type="text" placeholder="Job Title" class="exp-role" value="${role}" oninput="updateResume()">
+                </div>
+                <div class="input-group-2">
+                    <input type="text" placeholder="Start Date" class="exp-start" value="${start}" oninput="updateResume()">
+                    <input type="text" placeholder="End Date" class="exp-end" value="${end}" oninput="updateResume()">
+                </div>
+                <textarea rows="3" placeholder="Job Description (Bullet points recommended)" class="exp-desc" oninput="updateResume()">${desc}</textarea>
+                <button class="btn-small" onclick="this.parentElement.remove(); updateResume()" style="background:rgba(255,0,0,0.3); margin-top:5px;">Remove</button>
+            `;
+            document.getElementById('experience-list').appendChild(div);
+        }
+
+        function updateExperiencePreview() {
+            const list = document.getElementById('experience-list');
+            const target = document.getElementById('out-experience-list');
+            target.innerHTML = '';
+
+            Array.from(list.children).forEach(item => {
+                const company = item.querySelector('.exp-company').value;
+                const role = item.querySelector('.exp-role').value;
+                const start = item.querySelector('.exp-start').value;
+                const end = item.querySelector('.exp-end').value;
+                const desc = item.querySelector('.exp-desc').value;
+
+                if (company || role) {
+                    const node = document.createElement('div');
+                    node.className = 'res-item';
+                    node.innerHTML = `
+                        <div class="res-item-header">
+                            <span>${company}</span>
+                            <span>${start} - ${end}</span>
+                        </div>
+                        <div class="res-item-sub">${role}</div>
+                        <div class="res-item-desc">${desc}</div>
+                    `;
+                    target.appendChild(node);
+                }
+            });
+        }
+
+        // --- Education Logic (Updated to accept params) ---
+        function addEducation(school = '', degree = '', year = '') {
+            const div = document.createElement('div');
+            div.className = 'editor-item';
+            div.innerHTML = `
+                <div class="input-group-2">
+                    <input type="text" placeholder="School/University" class="edu-school" value="${school}" oninput="updateResume()">
+                    <input type="text" placeholder="Degree/Major" class="edu-degree" value="${degree}" oninput="updateResume()">
+                </div>
+                <input type="text" placeholder="Graduation Year" class="edu-year" value="${year}" oninput="updateResume()">
+                <button class="btn-small" onclick="this.parentElement.remove(); updateResume()" style="background:rgba(255,0,0,0.3); margin-top:5px;">Remove</button>
+            `;
+            document.getElementById('education-list').appendChild(div);
+        }
+
+        function updateEducationPreview() {
+            const list = document.getElementById('education-list');
+            const target = document.getElementById('out-education-list');
+            target.innerHTML = '';
+
+            Array.from(list.children).forEach(item => {
+                const school = item.querySelector('.edu-school').value;
+                const degree = item.querySelector('.edu-degree').value;
+                const year = item.querySelector('.edu-year').value;
+
+                if (school || degree) {
+                    const node = document.createElement('div');
+                    node.className = 'res-item';
+                    node.innerHTML = `
+                        <div class="res-item-header">
+                            <span>${school}</span>
+                            <span>${year}</span>
+                        </div>
+                        <div class="res-item-sub">${degree}</div>
+                    `;
+                    target.appendChild(node);
+                }
+            });
+        }
+
+        // --- AI Generate Summary ---
+        async function generateSummary() {
+            const role = document.getElementById('in-role').value;
+            const skills = document.getElementById('in-skills').value;
+            const btn = document.querySelector('.ai-btn');
+
+            if (!role) { alert('Please enter a role first.'); return; }
+
+            btn.innerHTML = '⏳ Generating...';
+
+            try {
+                const res = await fetch('/generate-profile-summary', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ role, skills })
+                });
+                const data = await res.json();
+                if (data.summary) {
+                    document.getElementById('in-summary').value = data.summary;
+                    updateResume(); // Trigger preview update
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (e) {
+                alert('Connection Error');
+            }
+            btn.innerHTML = '✨ AI Generate';
+        }
+
+        // --- Export PDF ---
+        function exportPDF() {
+            const element = document.getElementById('resume-paper');
+            const name = document.getElementById('in-name').value || 'Resume';
+
+            const opt = {
+                margin: 0,
+                filename: `${name}_Resume.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            html2pdf().set(opt).from(element).save();
+        }
+    </script>
 </body>
 
 </html>

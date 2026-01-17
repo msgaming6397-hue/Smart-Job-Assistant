@@ -6,3 +6,5 @@ PyPDF2
 python-docx
 google-generativeai
 gunicorn
+flask-sqlalchemy
+flask-login
