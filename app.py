@@ -33,38 +33,17 @@ app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev_warning_change_me_in_pro
 app.config['UPLOAD_FOLDER'] = tempfile.gettempdir() 
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB limit
 
-# Fail-Safe Database Setup
-DB_AVAILABLE = True
-try:
-    default_db_path = os.path.join(tempfile.gettempdir(), 'users.db')
-    db_url = os.getenv('DATABASE_URL', f'sqlite:///{default_db_path}')
-    if db_url.startswith("postgres://"):
-        db_url = db_url.replace("postgres://", "postgresql://", 1)
-        
-    app.config['SQLALCHEMY_DATABASE_URI'] = db_url
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    
-    db = SQLAlchemy(app)
-    
-    # User Model (Must be defined before creation)
-    class User(UserMixin, db.Model):
-        id = db.Column(db.Integer, primary_key=True)
-        username = db.Column(db.String(150), unique=True, nullable=False)
-        password = db.Column(db.String(150), nullable=False)
+# Hardcoded Users (No Database Required)
+USERS_DB = {
+    'mohammedsaaqib': {'password': 'saaqib9790', 'id': 1},
+    'ranjithkumar': {'password': 'ranjith18', 'id': 2},
+    'admin': {'password': 'adminpassword123', 'id': 3}
+}
 
-    with app.app_context():
-        db.create_all()
-        logger.info("Database initialized successfully.")
-        
-except Exception as e:
-    logger.error(f"DATABASE FAILURE: {e}. Switching to DEMO MODE.")
-    DB_AVAILABLE = False
-    # Create a dummy User class for demo mode
-    class User(UserMixin):
-        def __init__(self, id, username, password):
-            self.id = id
-            self.username = username
-            self.password = password
+class User(UserMixin):
+    def __init__(self, id, username):
+        self.id = id
+        self.username = username
 
 ALLOWED_EXTENSIONS = {'pdf', 'docx'}
 
@@ -72,18 +51,12 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 
-# Demo User for Fallback
-DEMO_USER = User(id=1, username="demo", password=generate_password_hash("demo"))
-
 @login_manager.user_loader
 def load_user(user_id):
-    if DB_AVAILABLE:
-        try:
-            return User.query.get(int(user_id))
-        except:
-            return DEMO_USER if int(user_id) == 1 else None
-    else:
-        return DEMO_USER if int(user_id) == 1 else None
+    for username, data in USERS_DB.items():
+        if data['id'] == int(user_id):
+            return User(data['id'], username)
+    return None
 
 # ... (rest of imports)
 
@@ -93,49 +66,18 @@ def login():
         username = request.form.get('username')
         password = request.form.get('password')
         
-        try:
-            user = User.query.filter_by(username=username).first()
-            if user and check_password_hash(user.password, password):
+        if username in USERS_DB:
+            # Check password directly
+            if USERS_DB[username]['password'] == password:
+                user = User(USERS_DB[username]['id'], username)
                 login_user(user)
                 return redirect(url_for('index'))
             else:
-                flash('Invalid username or password')
-        except Exception as e:
-            logger.error(f"Login Error: {e}")
-            flash("System Error: Could not connect to database. Please check logs.")
+                flash('Incorrect password')
+        else:
+            flash('User not found')
             
     return render_template('login.html')
-
-@app.route('/register', methods=['GET', 'POST'])
-def register():
-    if request.method == 'POST':
-        username = request.form.get('username')
-        password = request.form.get('password')
-        confirm_password = request.form.get('confirm_password')
-
-        if password != confirm_password:
-            flash('Passwords do not match')
-            return redirect(url_for('register'))
-
-        try:
-            user = User.query.filter_by(username=username).first()
-            if user:
-                flash('Username already exists')
-                return redirect(url_for('register'))
-            
-            # Use default hashing method (compatible with all versions)
-            new_user = User(username=username, password=generate_password_hash(password))
-            db.session.add(new_user)
-            db.session.commit()
-            
-            login_user(new_user)
-            return redirect(url_for('index'))
-        except Exception as e:
-            logger.error(f"Register Error: {e}")
-            flash(f"Error creating account: {str(e)}")
-            return redirect(url_for('register'))
-        
-    return render_template('register.html')
 
 @app.route('/logout')
 @login_required
