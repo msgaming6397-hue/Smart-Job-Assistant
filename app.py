@@ -21,16 +21,30 @@ if api_key:
     genai.configure(api_key=api_key)
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'thisisasecretkey' # TOD0: Change this to env var
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev_warning_change_me_in_prod')
 app.config['UPLOAD_FOLDER'] = 'uploads'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB limit
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
+
+# Database Configuration
+db_url = os.getenv('DATABASE_URL', 'sqlite:///users.db')
+if db_url.startswith("postgres://"):
+    db_url = db_url.replace("postgres://", "postgresql://", 1) # Fix for Render
+app.config['SQLALCHEMY_DATABASE_URI'] = db_url
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
 ALLOWED_EXTENSIONS = {'pdf', 'docx'}
 
 db = SQLAlchemy(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
+
+# Ensure tables exist (Run this at startup)
+with app.app_context():
+    db.create_all()
+
+# Ensure upload directory exists
+os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 
 # Ensure upload directory exists
@@ -524,6 +538,4 @@ def parse_resume():
     return jsonify({"error": "Invalid file type"}), 400
 
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
     app.run(debug=True)
