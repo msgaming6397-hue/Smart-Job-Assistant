@@ -1,6 +1,8 @@
 import os
 import json
 import requests
+import logging # Added logging
+import tempfile # For safe temp dirs
 from flask import Flask, render_template, request, jsonify, flash, redirect, url_for
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -9,6 +11,10 @@ import PyPDF2
 import docx
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+
+# Setup Logging (Visible in Render Logs)
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Load environment variables
 load_dotenv()
@@ -22,13 +28,15 @@ if api_key:
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev_warning_change_me_in_prod')
-app.config['UPLOAD_FOLDER'] = 'uploads'
+
+# Use system temp directory for uploads to avoid permission errors
+app.config['UPLOAD_FOLDER'] = tempfile.gettempdir() 
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB limit
 
 # Database Configuration
 db_url = os.getenv('DATABASE_URL', 'sqlite:///users.db')
 if db_url.startswith("postgres://"):
-    db_url = db_url.replace("postgres://", "postgresql://", 1) # Fix for Render
+    db_url = db_url.replace("postgres://", "postgresql://", 1)
 app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -41,10 +49,13 @@ login_manager.login_view = 'login'
 
 # Ensure tables exist (Run this at startup)
 with app.app_context():
-    db.create_all()
+    try:
+        db.create_all()
+        logger.info("Database tables created successfully.")
+    except Exception as e:
+        logger.error(f"Error creating database tables: {e}")
 
-# Ensure upload directory exists
-os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+# (No need to os.makedirs for tempfile.gettempdir() as it exists)
 
 
 # Ensure upload directory exists
