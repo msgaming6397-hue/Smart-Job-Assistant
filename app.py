@@ -34,9 +34,13 @@ app.config['UPLOAD_FOLDER'] = tempfile.gettempdir()
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB limit
 
 # Database Configuration
-db_url = os.getenv('DATABASE_URL', 'sqlite:///users.db')
+# Fallback to /tmp/users.db on Render if no DATABASE_URL is set (avoids read-only errors)
+default_db_path = os.path.join(tempfile.gettempdir(), 'users.db')
+db_url = os.getenv('DATABASE_URL', f'sqlite:///{default_db_path}')
+
 if db_url.startswith("postgres://"):
     db_url = db_url.replace("postgres://", "postgresql://", 1)
+    
 app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -51,175 +55,29 @@ login_manager.login_view = 'login'
 with app.app_context():
     try:
         db.create_all()
-        logger.info("Database tables created successfully.")
+        logger.info(f"Database tables created successfully at {db_url}")
     except Exception as e:
         logger.error(f"Error creating database tables: {e}")
 
-# (No need to os.makedirs for tempfile.gettempdir() as it exists)
-
-
-# Ensure upload directory exists
-os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-
-# User Model
-class User(UserMixin, db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(150), unique=True, nullable=False)
-    password = db.Column(db.String(150), nullable=False)
-
-@login_manager.user_loader
-def load_user(user_id):
-    return User.query.get(int(user_id))
-
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
-def extract_text_from_pdf(file_path):
-    text = ""
-    try:
-        with open(file_path, 'rb') as file:
-            reader = PyPDF2.PdfReader(file)
-            for page in reader.pages:
-                text += page.extract_text() + "\n"
-    except Exception as e:
-        print(f"Error reading PDF: {e}")
-    return text
-
-def extract_text_from_docx(file_path):
-    text = ""
-    try:
-        doc = docx.Document(file_path)
-        for para in doc.paragraphs:
-            text += para.text + "\n"
-    except Exception as e:
-        print(f"Error reading DOCX: {e}")
-    return text
-
-def analyze_with_ai(text):
-    api_key = os.getenv("GEMINI_API_KEY")
-    if not api_key:
-        return {"error": "Missing GEMINI_API_KEY in .env file."}
-
-    try:
-        model = genai.GenerativeModel('gemini-2.5-flash')
-        
-        prompt = f"""
-        You are an expert ATS (Applicant Tracking System) scanner and career coach. Analyze the resume text below.
-        
-        Resume Text:
-        {text[:4000]}
-
-        Tasks:
-        1. Extract specific Technical Skills (programming, tools, hard skills).
-        2. Extract specific Soft Skills (communication, leadership, etc.).
-        3. Suggest 3 suitable job roles containing a title and description.
-        4. Calculate an estimated ATS Score (0-100).
-        5. Provide 3 specific tips to improve the resume.
-        6. Identify 3 critical MISSING skills for the suggested roles and provide a brief recommendation on how to verify/learn them.
-
-        Return ONLY a JSON object with this structure (no markdown formatting):
-        {{
-            "technical_skills": ["Tech Skill 1", "Tech Skill 2", ...],
-            "soft_skills": ["Soft Skill 1", "Soft Skill 2", ...],
-            "job_roles": [
-                {{"title": "Role 1", "description": "Why this fits..."}},
-                {{"title": "Role 2", "description": "Why this fits..."}},
-                {{"title": "Role 3", "description": "Why this fits..."}}
-            ],
-            "ats_score": 0,
-            "ats_tips": ["Tip 1", "Tip 2", "Tip 3"],
-            "missing_skills": [
-                {{"skill": "Missing Skill 1", "recommendation": "Take a course on..."}},
-                {{"skill": "Missing Skill 2", "recommendation": "Build a project using..."}}
-            ]
-        }}
-        """
-        
-        response = model.generate_content(prompt)
-        content = response.text
-        
-        # Clean up JSON if model adds backticks
-        if "```json" in content:
-            content = content.split("```json")[1].split("```")[0].strip()
-        elif "```" in content:
-            content = content.split("```")[1].split("```")[0].strip()
-
-        return json.loads(content)
-        
-    except Exception as e:
-        # Fallback for errors
-        return {"error": f"AI Error: {str(e)}"}
-
-def generate_cover_letter_ai(name, role, skills):
-    api_key = os.getenv("GEMINI_API_KEY")
-    if not api_key:
-        return "Error: API Key not found."
-
-    try:
-        model = genai.GenerativeModel('gemini-2.5-flash')
-        
-        prompt = f"""
-        Write a professional and persuasive cover letter for:
-        Candidate Name: {name}
-        Target Job Role: {role}
-        Key Skills: {skills}
-
-        The tone should be enthusiastic, professional, and confident.
-        Keep it concise (under 300 words).
-        """
-        
-        response = model.generate_content(prompt)
-        return response.text
-    except Exception as e:
-        return f"Error generating cover letter: {str(e)}"
-
-def enhance_cv_with_ai(text):
-    api_key = os.getenv("GEMINI_API_KEY")
-    if not api_key:
-        return "<p>Error: API Key not found.</p>"
-
-    try:
-        model = genai.GenerativeModel('gemini-2.5-flash')
-        
-        prompt = f"""
-        You are a professional Top-Tier Resume Writer and Career Coach. Review the resume text below and provide a detailed critique to ENHANCE it.
-        
-        Resume Text:
-        {text[:4000]}
-
-        Focus on:
-        1. **Impact & Clarity**: Are bullet points result-oriented? (e.g., "Increased sales by 20%" vs "Responsible for sales")
-        2. **Structure & Formatting**: Is the layout logical? (Note: you are reading text, so infer structure from flow)
-        3. **Language**: Use of strong action verbs.
-        4. **Missing Content**: What important sections are missing? (Projects, Certifications, etc.)
-
-        Output Format:
-        Return a structured HTML string (NOT Markdown, NOT JSON). Use <h3> for headings, <ul> and <li> for points, and <strong> for emphasis.
-        Do NOT include <html> or <body> tags. Just the content div.
-        Example:
-        <h3>1. Impact Analysis</h3>
-        <ul><li>...</li></ul>
-        """
-        
-        response = model.generate_content(prompt)
-        content = response.text
-        # Cleanup markdown code blocks if present
-        content = content.replace("```html", "").replace("```", "").strip()
-        return content
-    except Exception as e:
-        return f"<p>Error generating suggestions: {str(e)}</p>"
+# ... (rest of imports)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
-        user = User.query.filter_by(username=username).first()
-        if user and check_password_hash(user.password, password):
-            login_user(user)
-            return redirect(url_for('index'))
-        else:
-            flash('Invalid username or password')
+        
+        try:
+            user = User.query.filter_by(username=username).first()
+            if user and check_password_hash(user.password, password):
+                login_user(user)
+                return redirect(url_for('index'))
+            else:
+                flash('Invalid username or password')
+        except Exception as e:
+            logger.error(f"Login Error: {e}")
+            flash("System Error: Could not connect to database. Please check logs.")
+            
     return render_template('login.html')
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -233,17 +91,23 @@ def register():
             flash('Passwords do not match')
             return redirect(url_for('register'))
 
-        user = User.query.filter_by(username=username).first()
-        if user:
-            flash('Username already exists')
+        try:
+            user = User.query.filter_by(username=username).first()
+            if user:
+                flash('Username already exists')
+                return redirect(url_for('register'))
+            
+            # Use default hashing method (compatible with all versions)
+            new_user = User(username=username, password=generate_password_hash(password))
+            db.session.add(new_user)
+            db.session.commit()
+            
+            login_user(new_user)
+            return redirect(url_for('index'))
+        except Exception as e:
+            logger.error(f"Register Error: {e}")
+            flash(f"Error creating account: {str(e)}")
             return redirect(url_for('register'))
-        
-        new_user = User(username=username, password=generate_password_hash(password, method='scrypt'))
-        db.session.add(new_user)
-        db.session.commit()
-        
-        login_user(new_user)
-        return redirect(url_for('index'))
         
     return render_template('register.html')
 
