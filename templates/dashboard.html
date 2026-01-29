@@ -1,0 +1,86 @@
+<div class="glass-card full-width">
+    <div class="dashboard-header">
+        <h2>Analysis Results</h2>
+        <div style="display: flex; gap: 10px;">
+            <button id="export-report-btn" class="btn-outline">📄 Export Report</button>
+            <button id="back-btn" class="btn-text">← Upload New</button>
+        </div>
+    </div>
+</div>
+
+<!-- ATS Score Section -->
+<div class="glass-card">
+    <h3>ATS Compatibility Score</h3>
+    <div class="ats-container">
+        <div class="circle-chart">
+            <svg viewBox="0 0 36 36" class="circular-chart">
+                <path class="circle-bg"
+                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                <path class="circle" id="ats-circle" stroke-dasharray="0, 100"
+                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                <text x="18" y="20.35" class="percentage" id="ats-text">0%</text>
+            </svg>
+        </div>
+        <div class="ats-tips">
+            <h4>Improvement Tips:</h4>
+            <ul id="ats-tips-list">
+                <!-- Tips go here -->
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Skills Section -->
+<div class="glass-card">
+    <h3>Extracted Skills</h3>
+    <div class="skills-table-container">
+        <div class="skills-column">
+            <h4 class="skill-header">Technical Skills</h4>
+            <div id="tech-skills-list" class="tags-wrapper">
+                <!-- Tech tags go here -->
+            </div>
+        </div>
+        <div class="vertical-divider"></div>
+        <div class="skills-column">
+            <h4 class="skill-header">Soft Skills</h4>
+            <div id="soft-skills-list" class="tags-wrapper">
+                <!-- Soft tags go here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Skill Gap Analysis -->
+<div class="glass-card">
+    <h3>Skill Gap Analysis</h3>
+    <p class="section-subtitle">Recommended skills to boost your profile:</p>
+    <div id="missing-skills-list" class="gap-wrapper">
+        <!-- Missing skills go here -->
+    </div>
+</div>
+
+<!-- Job Roles -->
+<div class="glass-card">
+    <h3>Recommended Roles</h3>
+    <div id="roles-list" class="roles-wrapper">
+        <!-- Roles go here -->
+    </div>
+</div>
+
+<!-- Cover Letter -->
+<div class="glass-card full-width">
+    <h3>Cover Letter Generator</h3>
+    <div class="cl-controls">
+        <input type="text" id="cl-name" placeholder="Your Name" class="input-field">
+        <select id="cl-role-select" class="input-field">
+            <option value="">Select Target Role</option>
+        </select>
+        <button id="generate-cl-btn" class="btn-secondary">Generate Draft</button>
+    </div>
+    <div id="cl-loading" class="loading hidden">
+        <div class="spinner small"></div>
+        <span>Writing...</span>
+    </div>
+    <div id="cl-output" class="cl-output hidden"></div>
+</div>
+</div>
