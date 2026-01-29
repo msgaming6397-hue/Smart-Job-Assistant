@@ -11,6 +11,8 @@ import PyPDF2
 import docx
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+# Import helpers
+from ai_helpers import extract_text_from_pdf, extract_text_from_docx, analyze_with_ai, generate_cover_letter_ai, enhance_cv_with_ai, generate_interview_ai, generate_roadmap_ai, generate_summary_ai, parse_resume_ai
 
 # Setup Logging (Visible in Render Logs)
 logging.basicConfig(level=logging.INFO)
@@ -20,73 +22,31 @@ logger = logging.getLogger(__name__)
 load_dotenv()
 
 # Configure Google Gemini
-import google.generativeai as genai
+# import google.generativeai as genai
 
 api_key = os.getenv("GEMINI_API_KEY")
 if api_key:
-    genai.configure(api_key=api_key)
+    # genai.configure(api_key=api_key)
+    pass
+
+app = Flask(__name__)
+# ... (Environment loading)
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev_warning_change_me_in_prod')
 
-# Use system temp directory for uploads to avoid permission errors
+# Use system temp directory for uploads
 app.config['UPLOAD_FOLDER'] = tempfile.gettempdir() 
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB limit
 
-# Hardcoded Users (No Database Required)
-USERS_DB = {
-    'mohammedsaaqib': {'password': 'saaqib9790', 'id': 1},
-    'ranjithkumar': {'password': 'ranjith18', 'id': 2},
-    'admin': {'password': 'adminpassword123', 'id': 3}
-}
-
-class User(UserMixin):
-    def __init__(self, id, username):
-        self.id = id
-        self.username = username
-
 ALLOWED_EXTENSIONS = {'pdf', 'docx'}
 
-login_manager = LoginManager()
-login_manager.init_app(app)
-login_manager.login_view = 'login'
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-@login_manager.user_loader
-def load_user(user_id):
-    for username, data in USERS_DB.items():
-        if data['id'] == int(user_id):
-            return User(data['id'], username)
-    return None
-
-# ... (rest of imports)
-
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        username = request.form.get('username')
-        password = request.form.get('password')
-        
-        if username in USERS_DB:
-            # Check password directly
-            if USERS_DB[username]['password'] == password:
-                user = User(USERS_DB[username]['id'], username)
-                login_user(user)
-                return redirect(url_for('index'))
-            else:
-                flash('Incorrect password')
-        else:
-            flash('User not found')
-            
-    return render_template('login.html')
-
-@app.route('/logout')
-@login_required
-def logout():
-    logout_user()
-    return redirect(url_for('login'))
+# ... (routes)
 
 @app.route('/')
-@login_required
 def index():
     return render_template('index.html')
 
@@ -135,32 +95,10 @@ def generate_interview():
         role = data.get('role')
         context_prompt = f"Target Role: {role}"
 
-    api_key = os.getenv("GEMINI_API_KEY")
     if not api_key: return jsonify({"error": "No API Key"}), 500
 
-    try:
-        model = genai.GenerativeModel('gemini-2.5-flash')
-        prompt = f"""
-        You are an expert Interviewer. Based on the following candidate context, generate 5 relevant interview questions.
-        
-        {context_prompt}
-
-        Include a mix of Technical, Behavioral, and Project-specific questions based on the resume/role.
-        For each, provide a sample "Best Answer".
-        
-        Return ONLY a JSON list:
-        [
-            {{"type": "Technical/Behavioral", "question": "...", "answer": "..."}},
-            ...
-        ]
-        """
-        response = model.generate_content(prompt)
-        text = response.text
-        if "```json" in text: text = text.split("```json")[1].split("```")[0].strip()
-        elif "```" in text: text = text.split("```")[1].split("```")[0].strip()
-        return jsonify({"questions": json.loads(text)})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    questions = generate_interview_ai(context_prompt)
+    return jsonify({"questions": questions})
 
 @app.route('/generate-roadmap', methods=['POST'])
 def generate_roadmap():
@@ -168,26 +106,10 @@ def generate_roadmap():
     current_role = data.get('current_role')
     target_role = data.get('target_role')
 
-    api_key = os.getenv("GEMINI_API_KEY")
     if not api_key: return jsonify({"error": "No API Key"}), 500
 
-    try:
-        model = genai.GenerativeModel('gemini-2.5-flash')
-        prompt = f"""
-        Create a 5-step Career Roadmap to go from {current_role} to {target_role}.
-        Return ONLY a JSON list of steps:
-        [
-            {{"step": "Step 1 Title", "description": "Details..."}},
-            ...
-        ]
-        """
-        response = model.generate_content(prompt)
-        text = response.text
-        if "```json" in text: text = text.split("```json")[1].split("```")[0].strip()
-        elif "```" in text: text = text.split("```")[1].split("```")[0].strip()
-        return jsonify({"roadmap": json.loads(text)})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    roadmap = generate_roadmap_ai(current_role, target_role)
+    return jsonify({"roadmap": roadmap})
 
 @app.route('/analyze', methods=['POST'])
 def analyze():
@@ -286,20 +208,10 @@ def generate_profile_summary():
     role = data.get('role', 'Professional')
     skills = data.get('skills', '')
     
-    api_key = os.getenv("GEMINI_API_KEY")
     if not api_key: return jsonify({"error": "No API Key"}), 500
 
-    try:
-        model = genai.GenerativeModel('gemini-2.5-flash')
-        prompt = f"""
-        Write a concise, professional resume summary (3-4 sentences) for a {role}.
-        Highlight these key skills: {skills}.
-        The tone should be confident and suitable for a resume header.
-        """
-        response = model.generate_content(prompt)
-        return jsonify({"summary": response.text})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    summary = generate_summary_ai(role, skills)
+    return jsonify({"summary": summary})
 
 @app.route('/cv-templates')
 def cv_templates():
@@ -329,54 +241,13 @@ def parse_resume():
         api_key = os.getenv("GEMINI_API_KEY")
         if not api_key: return jsonify({"error": "No API Key"}), 500
 
-        try:
-            model = genai.GenerativeModel('gemini-2.5-flash')
-            prompt = f"""
-            You are a Resume Parser. Extract data from the resume text below and structure it EXATLY as this JSON.
-            
-            Resume Text:
-            {text[:4000]}
-
-            Required JSON Structure:
-            {{
-                "personal": {{
-                    "name": "Full Name",
-                    "role": "Current Job Title",
-                    "email": "Email",
-                    "phone": "Phone",
-                    "location": "City, Country",
-                    "link": "LinkedIn/Portfolio URL",
-                    "summary": "Professional Summary"
-                }},
-                "experience": [
-                    {{ "company": "Company Name", "role": "Job Title", "start": "Start Date", "end": "End Date", "description": "Job Description" }}
-                ],
-                "education": [
-                    {{ "school": "University Name", "degree": "Degree", "year": "Graduation Year" }}
-                ],
-                "skills": ["Skill 1", "Skill 2"]
-            }}
-            
-            Return ONLY raw JSON. No markdown.
-            """
-            response = model.generate_content(prompt)
-            content = response.text
-             # Clean up JSON
-            if "```json" in content:
-                content = content.split("```json")[1].split("```")[0].strip()
-            elif "```" in content:
-                content = content.split("```")[1].split("```")[0].strip()
-            
-            parsed_data = json.loads(content)
-            
-            # Cleanup
-            try: os.remove(filepath)
-            except: pass
-            
-            return jsonify(parsed_data)
-            
-        except Exception as e:
-            return jsonify({"error": str(e)}), 500
+        parsed_data = parse_resume_ai(text)
+        
+        # Cleanup
+        try: os.remove(filepath)
+        except: pass
+        
+        return jsonify(parsed_data)
     
     return jsonify({"error": "Invalid file type"}), 400
 
